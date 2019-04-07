@@ -16,6 +16,36 @@
 
 namespace zyn {
 
+float polyblampres(float smp, float ws, float dMax)
+{
+
+    float dist = fabs(smp) - ws;
+    float res, d;
+    if (fabs(dist) < dMax) {
+        if (dist < -dMax/2.0f) {
+            d = (dist + dMax)/dMax*2;   // [-dMax ... -dMax/2] -> [0 ... 1]
+            res = powf(d, 5.0f) / 120.0f;
+        }
+        else if ( dist < 0.0) {
+            d = (dist + dMax/2)/dMax*2; // [-dMax/2 ... 0] -> [0 ... 1]
+            res = -powf(d,5.0f)/40.0f + powf(d,4.0f)/24.0f + powf(d,3.0f)/12.0f + powf(d,2.0f)/12.0f + d/24.0f + 1.0f/120.0f;
+        }
+        else if ( dist < dMax/2.0) {
+            d = (dist)/dMax*2;          //[0 ... dMax/2] -> [0 ... 1]
+            res = (powf(d,5.0f)/40.0f) - (powf(d,4.0)/12.0f) + (powf(d,2.0f)/3.0f) - (d/2.0f) + (7.0f/30.0f);
+        }
+        else {
+            d = (dist - dMax/2.0)/dMax*2; //[dMax/2 ... dMax] -> [0 ... 1]
+            res = -powf(d,5.0f)/120.0f + powf(d,4.0f)/24.0f - powf(d,3.0f)/12.0f + powf(d,2.0f)/12.0f - d/24.0f + 1.0f/120.0f;
+        }
+    }
+    else
+        res = 0;
+
+    return res*dMax/2;
+
+}
+
 void waveShapeSmps(int n,
                    float *smps,
                    unsigned char type,
@@ -80,15 +110,12 @@ void waveShapeSmps(int n,
         case 7:
             ws = powf(2.0f, -ws * ws * 8.0f); //Limiter
             for(i = 0; i < n; ++i) {
-                float tmp = smps[i];
-                if(fabs(tmp) > ws) {
-                    if(tmp >= 0.0f)
-                        smps[i] = 1.0f;
-                    else
-                        smps[i] = -1.0f;
-                }
+                float res = polyblampres(smps[i], ws, 0.06f);
+                if(fabs(smps[i]) > ws)
+                    smps[i] = (smps[i] >= 0.0f ? ws-res : -ws+res)/ws;
                 else
-                    smps[i] /= ws;
+                    smps[i] = (smps[i] + ( smps[i]<=0 ? res : -res )) / ws;
+
             }
             break;
         case 8:
@@ -111,16 +138,15 @@ void waveShapeSmps(int n,
             break;
         case 10:
             ws = (powf(2.0f, ws * 6.0f) - 1.0f) / powf(2.0f, 6.0f); //Inverse Limiter
+            if (par > ws - 0.01) par = ws - 0.01;
             for(i = 0; i < n; ++i) {
-                float tmp = smps[i];
-                if(fabs(tmp) > ws) {
-                    if(tmp >= 0.0f)
-                        smps[i] = tmp - ws;
-                    else
-                        smps[i] = tmp + ws;
-                }
+                smps[i] += offs;
+                float res = polyblampres(smps[i], ws, par);
+                if (smps[i]>=0)
+                    smps[i] = ( smps[i] > ws ? smps[i]-ws+res : res );
                 else
-                    smps[i] = 0;
+                    smps[i] = ( smps[i] < -ws ? smps[i]+ws-res : -res );
+                smps[i] -= offs;
             }
             break;
         case 11:
@@ -176,6 +202,7 @@ void waveShapeSmps(int n,
                     tmp = 10.0f;
                 tmp     = 0.5f - 1.0f / (expf(tmp) + 1.0f);
                 smps[i] = tmp / tmpv;
+                smps[i] -= offs;
             }
             break;
     }

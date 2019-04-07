@@ -1,0 +1,33 @@
+From c971e0fc67e009986aa1a990d9ff674a81ff0c33 Mon Sep 17 00:00:00 2001
+From: Friedolino <mkirchn@freenet.de>
+Date: Sat, 6 Apr 2019 21:38:20 +0200
+Subject: [PATCH 1/2] changed the POW distorsion to the probably intended shape
+ without edge
+
+---
+ src/Misc/WaveShapeSmps.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/Misc/WaveShapeSmps.cpp b/src/Misc/WaveShapeSmps.cpp
+index 1a25e60..fbd9e82 100644
+--- a/src/Misc/WaveShapeSmps.cpp
++++ b/src/Misc/WaveShapeSmps.cpp
+@@ -46,12 +46,12 @@ void waveShapeSmps(int n,
+             for(i = 0; i < n; ++i) {
+                 smps[i] *= ws;
+                 if(fabs(smps[i]) < 1.0f) {
+-                    smps[i] = (smps[i] - powf(smps[i], 3.0f)) * 3.0f;
++                    smps[i] = 1.5 * (smps[i] - (powf(smps[i], 3.0) / 3.0) );
+                     if(ws < 1.0f)
+                         smps[i] /= ws;
+                 }
+-                else
+-                    smps[i] = 0.0f;
++                else 
++                    smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
+             }
+             break;
+         case 4:
+-- 
+2.7.4
+

@@ -1,0 +1,76 @@
+From eff37ed014d9bf659f75b16e498d99ce882dd5d3 Mon Sep 17 00:00:00 2001
+From: Friedolino <mkirchn@freenet.de>
+Date: Sun, 7 Apr 2019 09:36:33 +0200
+Subject: [PATCH 2/2] added polyblamp inspired edge rounding to the limiter in
+ distrosion
+
+---
+ src/Misc/WaveShapeSmps.cpp | 45 ++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 36 insertions(+), 9 deletions(-)
+
+diff --git a/src/Misc/WaveShapeSmps.cpp b/src/Misc/WaveShapeSmps.cpp
+index fbd9e82..e78176e 100644
+--- a/src/Misc/WaveShapeSmps.cpp
++++ b/src/Misc/WaveShapeSmps.cpp
+@@ -16,6 +16,36 @@
+ 
+ namespace zyn {
+ 
++float polyblampres(float smp, float ws, float dMax)
++{
++    
++    float dist = fabs(smp) - ws;
++    float res, d;
++    if (fabs(dist) < dMax) {
++        if (dist < -dMax/2.0f) {
++            d = (dist + dMax)/dMax*2;   // [-dMax ... -dMax/2] -> [0 ... 1]
++            res = powf(d, 5.0f) / 120.0f;
++        }
++        else if ( dist < 0.0) {
++            d = (dist + dMax/2)/dMax*2; // [-dMax/2 ... 0] -> [0 ... 1]
++            res = -powf(d,5.0f)/40.0f + powf(d,4.0f)/24.0f + powf(d,3.0f)/12.0f + powf(d,2.0f)/12.0f + d/24.0f + 1.0f/120.0f;
++        }
++        else if ( dist < dMax/2.0) {
++            d = (dist)/dMax*2;          //[0 ... dMax/2] -> [0 ... 1]
++            res = (powf(d,5.0f)/40.0f) - (powf(d,4.0)/12.0f) + (powf(d,2.0f)/3.0f) - (d/2.0f) + (7.0f/30.0f);
++        }
++        else {
++            d = (dist - dMax/2.0)/dMax*2; //[dMax/2 ... dMax] -> [0 ... 1]
++            res = -powf(d,5.0f)/120.0f + powf(d,4.0f)/24.0f - powf(d,3.0f)/12.0f + powf(d,2.0f)/12.0f - d/24.0f + 1.0f/120.0f;
++        }
++    }
++    else
++        res = 0;
++    
++    return res*dMax/2;
++                        
++}
++
+ void waveShapeSmps(int n,
+                    float *smps,
+                    unsigned char type,
+@@ -80,15 +110,12 @@ void waveShapeSmps(int n,
+         case 7:
+             ws = powf(2.0f, -ws * ws * 8.0f); //Limiter
+             for(i = 0; i < n; ++i) {
+-                float tmp = smps[i];
+-                if(fabs(tmp) > ws) {
+-                    if(tmp >= 0.0f)
+-                        smps[i] = 1.0f;
+-                    else
+-                        smps[i] = -1.0f;
+-                }
+-                else
+-                    smps[i] /= ws;
++                float res = polyblampres(smps[i], ws, 0.06f);
++                if(fabs(smps[i]) > ws) 
++                    smps[i] = (smps[i] >= 0.0f ? ws-res : -ws+res)/ws;
++                else 
++                    smps[i] = (smps[i] + ( smps[i]<=0 ? res : -res )) / ws;
++
+             }
+             break;
+         case 8:
+-- 
+2.7.4
+

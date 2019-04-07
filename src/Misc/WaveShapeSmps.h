@@ -21,6 +21,10 @@ void waveShapeSmps(int n,
                    unsigned char type,
                    unsigned char drive);
 
+//calculate the polyblamp residual value (called by waveshape function)
+float polyblampres(float smp, 
+                   float ws, 
+                   float dMax);
 }
 
 #endif
