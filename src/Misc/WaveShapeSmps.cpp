@@ -49,10 +49,14 @@ float polyblampres(float smp, float ws, float dMax)
 void waveShapeSmps(int n,
                    float *smps,
                    unsigned char type,
-                   unsigned char drive)
+                   unsigned char drive,
+                   unsigned char offset,
+                   unsigned char funcpar)
 {
     int   i;
     float ws = drive / 127.0f;
+    float par = funcpar / 63.0f;
+    if (par < -1.0) par = -1.0;
     float tmpv;
 
     switch(type) {
@@ -109,8 +113,10 @@ void waveShapeSmps(int n,
             break;
         case 7:
             ws = powf(2.0f, -ws * ws * 8.0f); //Limiter
+            par = par/4;
+            if (par > ws) par = ws - 0.01;
             for(i = 0; i < n; ++i) {
-                float res = polyblampres(smps[i], ws, 0.06f);
+                float res = polyblampres(smps[i], ws, par);
                 if(fabs(smps[i]) > ws)
                     smps[i] = (smps[i] >= 0.0f ? ws-res : -ws+res)/ws;
                 else
@@ -170,7 +176,7 @@ void waveShapeSmps(int n,
                     smps[i] = 0.0f;
             }
             break;
-        case 13:
+        case 99:
             ws = ws * ws * ws * 32.0f + 0.0001f; //Pow2
             if(ws < 1.0f)
                 tmpv = ws * (1 + ws) / 2.0f;
@@ -203,6 +209,44 @@ void waveShapeSmps(int n,
                 tmp     = 0.5f - 1.0f / (expf(tmp) + 1.0f);
                 smps[i] = tmp / tmpv;
                 smps[i] -= offs;
+            }
+            break;
+        case 15:
+            // f(x) = x / ((1+|x|^n)^1/n) // tanh approximation for n=2.5 (Abel 2006)
+            par = par * 15.875f + 0.5f;        
+            ws = ws * ws * ws * 20.0f + 0.0001f;
+            for(i = 0; i < n; ++i) {
+                smps[i] *= ws;
+                smps[i] += offset;
+                smps[i] = smps[i] / powf(1+powf(fabs(smps[i]), par), 1/par);
+                smps[i] -= offset;
+                smps[i] /= ws;
+            }
+            break;
+        case 16:
+            ws = ws * ws * ws * 20.0f + 0.0001f; //cubic soft limiter
+            for(i = 0; i < n; ++i) {
+                smps[i] *= ws;
+                if(fabs(smps[i]) < 1.0f) {
+                    smps[i] = 1.5 * (smps[i] - (powf(smps[i], 3.0) / 3.0) );
+                    if(ws < 1.0f)
+                        smps[i] /= ws;
+                }
+                else
+                    smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
+            }
+            break;
+        case 13:
+            ws = ws * ws * ws * 20.0f + 0.0001f; //square soft limiter
+            for(i = 0; i < n; ++i) {
+                smps[i] *= ws;
+                if(fabs(smps[i]) < 1.0f) {
+                    smps[i] = smps[i]*(2-fabs(smps[i]));
+                    if(ws < 1.0f)
+                        smps[i] /= ws;
+                }
+                else
+                    smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
             }
             break;
     }

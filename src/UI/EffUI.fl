@@ -1790,6 +1790,10 @@ effdynamicfilterwindow->hide();//delete (effdynamicfilterwindow);} {}
           label Sgm
           xywh {95 95 100 20} labelfont 1 labelsize 10
         }
+        MenuItem {} {
+          label Tanh
+          xywh {105 105 100 20} labelfont 1 labelsize 10
+        }
       }
     }
   }
