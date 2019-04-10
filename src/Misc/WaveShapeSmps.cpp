@@ -55,15 +55,18 @@ void waveShapeSmps(int n,
 {
     int   i;
     float ws = drive / 127.0f;
-    float par = funcpar / 63.0f;
-    if (par < -1.0) par = -1.0;
+    float par = funcpar / 127.0f;
+    float offs = (offset - 64.0f) / 64.0f;
     float tmpv;
 
     switch(type) {
         case 1:
             ws = powf(10, ws * ws * 3.0f) - 1.0f + 0.001f; //Arctangent
-            for(i = 0; i < n; ++i)
+            for(i = 0; i < n; ++i) {
+                smps[i] += offs;
                 smps[i] = atanf(smps[i] * ws) / atanf(ws);
+                smps[i] -= offs;
+            }
             break;
         case 2:
             ws = ws * ws * 32.0f + 0.0001f; //Asymmetric
@@ -114,13 +117,16 @@ void waveShapeSmps(int n,
         case 7:
             ws = powf(2.0f, -ws * ws * 8.0f); //Limiter
             par = par/4;
-            if (par > ws) par = ws - 0.01;
+            if (par > ws - 0.01) par = ws - 0.01;
             for(i = 0; i < n; ++i) {
+                smps[i] += offs;
                 float res = polyblampres(smps[i], ws, par);
-                if(fabs(smps[i]) > ws)
-                    smps[i] = (smps[i] >= 0.0f ? ws-res : -ws+res)/ws;
+
+                if (smps[i]>=0)
+                    smps[i] = ( smps[i] > ws ? ws-res : smps[i]-res );
                 else
-                    smps[i] = (smps[i] + ( smps[i]<=0 ? res : -res )) / ws;
+                    smps[i] = ( smps[i] < -ws ? -ws+res : smps[i]+res );
+                smps[i] -= offs;
 
             }
             break;
@@ -176,7 +182,7 @@ void waveShapeSmps(int n,
                     smps[i] = 0.0f;
             }
             break;
-        case 99:
+        case 13:
             ws = ws * ws * ws * 32.0f + 0.0001f; //Pow2
             if(ws < 1.0f)
                 tmpv = ws * (1 + ws) / 2.0f;
@@ -200,6 +206,7 @@ void waveShapeSmps(int n,
             else
                 tmpv = 0.5f - 1.0f / (expf(ws) + 1.0f);
             for(i = 0; i < n; ++i) {
+                smps[i] += offs;
                 float tmp = smps[i] * ws;
                 if(tmp < -10.0f)
                     tmp = -10.0f;
@@ -213,22 +220,25 @@ void waveShapeSmps(int n,
             break;
         case 15:
             // f(x) = x / ((1+|x|^n)^1/n) // tanh approximation for n=2.5 (Abel 2006)
-            par = par * 15.875f + 0.5f;        
-            ws = ws * ws * ws * 20.0f + 0.0001f;
+            par = (100.0f/3.0f) * par * par - (7.0f/3.0f) * par + 1.0f;  //Pfunpar=32 -> n=2.5
+            ws = ws * ws * 35.0f + 0.0001f;
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws;
-                smps[i] += offset;
+                smps[i] += offs;
                 smps[i] = smps[i] / powf(1+powf(fabs(smps[i]), par), 1/par);
-                smps[i] -= offset;
+                smps[i] -= offs;
                 smps[i] /= ws;
             }
             break;
         case 16:
-            ws = ws * ws * ws * 20.0f + 0.0001f; //cubic soft limiter
+            ws = powf(ws, 3.5f) * 20.0f + 1.0f; //cubic soft limiter
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws;
+                smps[i] += offs;
                 if(fabs(smps[i]) < 1.0f) {
+                    
                     smps[i] = 1.5 * (smps[i] - (powf(smps[i], 3.0) / 3.0) );
+                    
                     if(ws < 1.0f)
                         smps[i] /= ws;
                 }
@@ -236,17 +246,21 @@ void waveShapeSmps(int n,
                     smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
             }
             break;
-        case 13:
-            ws = ws * ws * ws * 20.0f + 0.0001f; //square soft limiter
+        case 17:
+            ws = ws * ws * ws * 20.0f + 1.0f; //square soft limiter
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws;
+                smps[i] += offs;
                 if(fabs(smps[i]) < 1.0f) {
+                    
                     smps[i] = smps[i]*(2-fabs(smps[i]));
+                    
                     if(ws < 1.0f)
                         smps[i] /= ws;
                 }
                 else
                     smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
+                smps[i] -= offs;
             }
             break;
     }

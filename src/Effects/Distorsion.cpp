@@ -48,7 +48,7 @@ rtosc::Ports Distorsion::ports = {
     rEffParOpt(Ptype,    5, rShort("type"),
             rOptions(Arctangent, Asymmetric, Pow, Sine, Quantisize,
                      Zigzag, Limiter, Upper Limiter, Lower Limiter,
-                     Inverse Limiter, Clip, Asym2, Pow2, Sigmoid, Tanh, 
+                     Inverse Limiter, Clip, Asym2, Pow2, Sigmoid, Tanh,
                      Cubic, Square),
             rPresets(Arctangent, Asymmetric, Zigzag,
                      Asymmetric, Pow, Quantisize),
@@ -62,11 +62,10 @@ rtosc::Ports Distorsion::ports = {
               rPresets(false, false, true, true, false, true), "Stereo"),
     rEffParTF(Pprefiltering, 10, rShort("p.filt"), rDefault(false),
               "Filtering before/after non-linearity"),
-    rEffPar(Pfuncpar,   11, rShort("shape"), rDefault(0),
-            rLinear(0, 127),
-            "Shape of the wave shaping function"),
-    rEffPar(Poffset,   12, rShort("offset"), rDefault(0),
-            rLinear(-64, 63), "Input DC Offset"),
+    rEffPar(Pfuncpar,   11, rShort("shape"), rDefault(32),
+            rLinear(0, 127), "Shape of the wave shaping function"),
+    rEffPar(Poffset,   12, rShort("offset"), rDefault(64),
+            rLinear(0, 127), "Input DC Offset"),
     {"waveform:", 0, 0, [](const char *, rtosc::RtData &d)
         {
             Distorsion  &dd = *(Distorsion*)d.obj;
@@ -103,8 +102,8 @@ Distorsion::Distorsion(EffectParams pars)
       Phpf(0),
       Pstereo(0),
       Pprefiltering(0),
-      Pfuncpar(0),
-      Poffset(0)
+      Pfuncpar(32),
+      Poffset(64)
 {
     lpfl = memory.alloc<AnalogFilter>(2, 22000, 1, 0, pars.srate, pars.bufsize);
     lpfr = memory.alloc<AnalogFilter>(2, 22000, 1, 0, pars.srate, pars.bufsize);
@@ -291,6 +290,12 @@ void Distorsion::changepar(int npar, unsigned char value)
             break;
         case 10:
             Pprefiltering = value;
+            break;
+        case 11:
+            Pfuncpar = value;
+            break;
+        case 12:
+            Poffset = value;
             break;
     }
 }
