@@ -109,7 +109,8 @@ void ADnote::setupVoice(int nvoice)
         pinking[nvoice][i] = 0.0;
 
     param.OscilSmp->newrandseed(prng());
-    voice.OscilSmp = NULL;
+    for(int j = 0; j < NUM_OSCIL_SMP_LAYERS; j++)
+        voice.OscilSmp[j] = NULL;
     voice.FMSmp    = NULL;
     voice.VoiceOut = NULL;
 
@@ -158,9 +159,10 @@ void ADnote::setupVoice(int nvoice)
         oscposloFM[nvoice][k] = 0.0f;
     }
 
-    //the extra points contains the first point
-    voice.OscilSmp =
-        memory.valloc<float>(synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES);
+    //the extra points contains the first points, make place for 6 bandlimited copies
+    for(int i = 0; i<NUM_OSCIL_SMP_LAYERS; i++)
+        voice.OscilSmp[i] =
+            memory.valloc<float>((synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES));
 
     //Get the voice's oscil or external's voice oscil
     int vc = nvoice;
@@ -169,9 +171,14 @@ void ADnote::setupVoice(int nvoice)
     if(!pars.GlobalPar.Hrandgrouping)
         pars.VoicePar[vc].OscilSmp->newrandseed(prng());
     int oscposhi_start =
-        pars.VoicePar[vc].OscilSmp->get(NoteVoicePar[nvoice].OscilSmp,
+        pars.VoicePar[vc].OscilSmp->get(NoteVoicePar[nvoice].OscilSmp[0],
                 getvoicebasefreq(nvoice),
                 pars.VoicePar[nvoice].Presonance);
+    for (int i=1;i<NUM_OSCIL_SMP_LAYERS; i++) {
+        pars.VoicePar[vc].OscilSmp->get(NoteVoicePar[nvoice].OscilSmp[i],
+                getvoicebasefreq(nvoice),
+                pars.VoicePar[nvoice].Presonance, i);
+    }
 
     // This code was planned for biasing the carrier in MOD_RING
     // but that's on hold for the moment.  Disabled 'cos small
@@ -191,7 +198,8 @@ void ADnote::setupVoice(int nvoice)
 
     //I store the first elments to the last position for speedups
     for(int i = 0; i < OSCIL_SMP_EXTRA_SAMPLES; ++i)
-        voice.OscilSmp[synth.oscilsize + i] = voice.OscilSmp[i];
+        for(int j = 0; j < NUM_OSCIL_SMP_LAYERS; j++)
+        voice.OscilSmp[j][synth.oscilsize + i] = voice.OscilSmp[j][i];
 
     voice.phase_offset = (int)((pars.VoicePar[nvoice].Poscilphase
                     - 64.0f) / 128.0f * synth.oscilsize + synth.oscilsize * 4);
@@ -599,15 +607,16 @@ void ADnote::legatonote(LegatoParams lpars)
         if(!pars.GlobalPar.Hrandgrouping)
             pars.VoicePar[vc].OscilSmp->newrandseed(getRandomUint());
 
-        pars.VoicePar[vc].OscilSmp->get(NoteVoicePar[nvoice].OscilSmp,
+        pars.VoicePar[vc].OscilSmp->get(NoteVoicePar[nvoice].OscilSmp[0],
                                          getvoicebasefreq(nvoice),
                                          pars.VoicePar[nvoice].Presonance); //(gf)Modif of the above line.
 
         //I store the first elments to the last position for speedups
         for(int i = 0; i < OSCIL_SMP_EXTRA_SAMPLES; ++i)
-            NoteVoicePar[nvoice].OscilSmp[synth.oscilsize
+            for(int j = 0; j < NUM_OSCIL_SMP_LAYERS; j++)
+            NoteVoicePar[nvoice].OscilSmp[j][synth.oscilsize
                                           + i] =
-                NoteVoicePar[nvoice].OscilSmp[i];
+                NoteVoicePar[nvoice].OscilSmp[j][i];
 
         auto &voiceFilter = NoteVoicePar[nvoice].Filter;
         if(voiceFilter) {
@@ -1247,9 +1256,13 @@ inline void ADnote::ComputeVoiceOscillator_LinearInterpolation(int nvoice)
         int    poslo  = oscposlo[nvoice][k] * (1<<24);
         int    freqhi = oscfreqhi[nvoice][k];
         int    freqlo = oscfreqlo[nvoice][k] * (1<<24);
-        float *smps   = NoteVoicePar[nvoice].OscilSmp;
+        float *smps;
         float *tw     = tmpwave_unison[k];
         assert(oscfreqlo[nvoice][k] < 1.0f);
+        int fNyquist = (int) (logf( (1.5*freqhi * synth.samplerate_f / synth.oscilsize_f) / getvoicebasefreq(nvoice) ) / logf(1.75));
+        if (fNyquist > NUM_OSCIL_SMP_LAYERS-1) fNyquist = NUM_OSCIL_SMP_LAYERS-1;
+        if (fNyquist < 0) fNyquist = 0;
+        smps = NoteVoicePar[nvoice].OscilSmp[fNyquist];
         for(int i = 0; i < synth.buffersize; ++i) {
             tw[i]  = (smps[poshi] * ((1<<24) - poslo) + smps[poshi + 1] * poslo)/(1.0f*(1<<24));
             poslo += freqlo;
@@ -1497,7 +1510,7 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyModulation(int nvoice,
 
     //do the modulation
     for(int k = 0; k < unison_size[nvoice]; ++k) {
-        float *smps   = NoteVoicePar[nvoice].OscilSmp;
+        float *smps   = NoteVoicePar[nvoice].OscilSmp[0];
         float *tw     = tmpwave_unison[k];
         int    poshi  = oscposhi[nvoice][k];
         int    poslo  = oscposlo[nvoice][k] * (1<<24);
@@ -1922,7 +1935,8 @@ void ADnote::Voice::releasekey()
 
 void ADnote::Voice::kill(Allocator &memory, const SYNTH_T &synth)
 {
-    memory.devalloc(OscilSmp);
+    for (int i = 0; i < NUM_OSCIL_SMP_LAYERS; i++)
+        memory.devalloc(OscilSmp[i]);
     memory.dealloc(FreqEnvelope);
     memory.dealloc(FreqLfo);
     memory.dealloc(AmpEnvelope);

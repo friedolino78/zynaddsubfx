@@ -118,6 +118,10 @@ typedef std::complex<fftw_real> fft_t;
  */
 #define NUM_SYS_EFX 4
 
+/*
+ * Number of prefiltered oscil layers on addsynth
+ */
+#define NUM_OSCIL_SMP_LAYERS 16
 
 /*
  * Number of insertion effects

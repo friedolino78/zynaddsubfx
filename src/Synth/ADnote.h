@@ -182,7 +182,7 @@ class ADnote:public SynthNote
             int DelayTicks;
 
             /* Waveform of the Voice */
-            float *OscilSmp;
+            float *OscilSmp[NUM_OSCIL_SMP_LAYERS];
 
             /* preserved for phase mod PWM emulation. */
             int phase_offset;

@@ -1038,7 +1038,7 @@ bool OscilGen::needPrepare(void)
 /*
  * Get the oscillator function
  */
-short int OscilGen::get(float *smps, float freqHz, int resonance)
+short int OscilGen::get(float *smps, float freqHz, int resonance, int fNyquist)
 {
     if(needPrepare())
         prepare();
@@ -1056,7 +1056,8 @@ short int OscilGen::get(float *smps, float freqHz, int resonance)
 
     clearAll(outoscilFFTfreqs, synth.oscilsize);
 
-    int nyquist = (int)(0.5f * synth.samplerate_f / fabs(freqHz)) + 2;
+    int nyquist = (int)(0.5f * synth.samplerate_f / fabs(freqHz) / powf(1.75,fNyquist) ) + 2;
+
     if(ADvsPAD)
         nyquist = (int)(synth.oscilsize / 2);
     if(nyquist > synth.oscilsize / 2)
@@ -1068,6 +1069,7 @@ short int OscilGen::get(float *smps, float freqHz, int resonance)
 
         if(Padaptiveharmonics != 0)
             nyquist = synth.oscilsize / 2;
+        
         for(int i = 1; i < nyquist - 1; ++i)
             outoscilFFTfreqs[i] = input[i];
 
@@ -1077,8 +1079,7 @@ short int OscilGen::get(float *smps, float freqHz, int resonance)
 
         nyquist = realnyquist;
     }
-
-    if(Padaptiveharmonics)   //do the antialiasing in the case of adaptive harmonics
+    //if(Padaptiveharmonics)   //do the antialiasing in the case of adaptive harmonics
         for(int i = nyquist; i < synth.oscilsize / 2; ++i)
             outoscilFFTfreqs[i] = fft_t(0.0f, 0.0f);
 
@@ -1123,7 +1124,10 @@ short int OscilGen::get(float *smps, float freqHz, int resonance)
         for(int i = 1; i < synth.oscilsize / 2; ++i)
             smps[i - 1] = abs(outoscilFFTfreqs, i);
     else {
+        
         fft->freqs2smps(outoscilFFTfreqs, smps);
+        
+        
         for(int i = 0; i < synth.oscilsize; ++i)
             smps[i] *= 0.25f;                     //correct the amplitude
     }
