@@ -18,7 +18,7 @@ namespace zyn {
 
 float polyblampres(float smp, float ws, float dMax)
 {
-
+    // Formula from: Esqueda, Välimäki, Bilbao (2015): ALIASING REDUCTION IN SOFT-CLIPPING ALGORITHMS
     float dist = fabs(smp) - ws;
     float res, d;
     if (fabs(dist) < dMax) {
@@ -219,7 +219,8 @@ void waveShapeSmps(int n,
             }
             break;
         case 15:
-            // f(x) = x / ((1+|x|^n)^1/n) // tanh approximation for n=2.5 (Abel 2006)
+            // f(x) = x / ((1+|x|^n)^1/n) // tanh approximation for n=2.5
+            // Formula from: Yeh, Abel, Smith (2007): SIMPLIFIED, PHYSICALLY-INFORMED MODELS OF DISTORTION AND OVERDRIVE GUITAR EFFECTS PEDALS
             par = (100.0f/3.0f) * par * par - (7.0f/3.0f) * par + 1.0f;  //Pfunpar=32 -> n=2.5
             ws = ws * ws * 35.0f + 0.0001f;
             for(i = 0; i < n; ++i) {
@@ -231,6 +232,9 @@ void waveShapeSmps(int n,
             }
             break;
         case 16:
+            // f(x) = 1.5 * (x-(x^3/3))
+            // Formula from: https://ccrma.stanford.edu/~jos/pasp/Soft_Clipping.html
+            // modified with factor 1.5 to go through [1,1] and [-1,-1]
             ws = powf(ws, 3.5f) * 20.0f + 1.0f; //cubic soft limiter
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws;
@@ -247,6 +251,8 @@ void waveShapeSmps(int n,
             }
             break;
         case 17:
+        // f(x) = x*(2-abs(x))
+        // Formula of 16 changed to square but still going through [1,1] and [-1,-1]
             ws = ws * ws * ws * 20.0f + 1.0f; //square soft limiter
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws;
