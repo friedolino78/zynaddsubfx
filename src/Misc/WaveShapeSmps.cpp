@@ -19,6 +19,13 @@ namespace zyn {
 float polyblampres(float smp, float ws, float dMax)
 {
     // Formula from: Esqueda, Välimäki, Bilbao (2015): ALIASING REDUCTION IN SOFT-CLIPPING ALGORITHMS
+    // http://dafx16.vutbr.cz/dafxpapers/18-DAFx-16_paper_33-PN.pdf pg 123, table 1 
+    // Four-point polyBLAMP residual:
+    // [−2T, T] d^5/120
+    // [−T, 0] −d^5/40 + d^4/24 + d^3/12 + d^2/12 + d/24 + 1/120
+    // [0, T] d^5/40 − d^4/12 + d^2/3 − d/2 + 7/30
+    // [T, 2T] −d^5/120 + d^4/24 − d^3/12 + d^2/12 − d/24 + 1/120
+
     float dist = fabs(smp) - ws;
     float res, d;
     if (fabs(dist) < dMax) {
