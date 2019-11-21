@@ -27,23 +27,34 @@ float polyblampres(float smp, float ws, float dMax)
     // [T, 2T] −d^5/120 + d^4/24 − d^3/12 + d^2/12 − d/24 + 1/120
 
     float dist = fabs(smp) - ws;
-    float res, d;
+    float res, d1, d2, d3, d4, d5;
     if (fabs(dist) < dMax) {
         if (dist < -dMax/2.0f) {
-            d = (dist + dMax)/dMax*2;   // [-dMax ... -dMax/2] -> [0 ... 1]
-            res = powf(d, 5.0f) / 120.0f;
+            d1 = (dist + dMax)/dMax*2;   // [-dMax ... -dMax/2] -> [0 ... 1]
+            res = powf(d1, 5.0f) / 120.0f;
         }
         else if ( dist < 0.0) {
-            d = (dist + dMax/2)/dMax*2; // [-dMax/2 ... 0] -> [0 ... 1]
-            res = -powf(d,5.0f)/40.0f + powf(d,4.0f)/24.0f + powf(d,3.0f)/12.0f + powf(d,2.0f)/12.0f + d/24.0f + 1.0f/120.0f;
+            d1 = (dist + dMax/2)/dMax*2; // [-dMax/2 ... 0] -> [0 ... 1]
+            d2 = d1*d1;
+            d3 = d2*d1;
+            d4 = d3*d1;
+            d5 = d4*d1;
+            res = (-d5/40.0f) + (d4/24.0f) + (d3/12.0f) + (d2/12.0f) + (d1/24.0f) + (1.0f/120.0f);
         }
         else if ( dist < dMax/2.0) {
-            d = (dist)/dMax*2;          //[0 ... dMax/2] -> [0 ... 1]
-            res = (powf(d,5.0f)/40.0f) - (powf(d,4.0)/12.0f) + (powf(d,2.0f)/3.0f) - (d/2.0f) + (7.0f/30.0f);
+            d1 = (dist)/dMax*2;          //[0 ... dMax/2] -> [0 ... 1]
+            d2 = d1*d1;
+            d4 = d2*d2;
+            d5 = d4*d1;
+            res = (d5/40.0f) - (d4/12.0f) + (d2/3.0f) - (d1/2.0f) + (7.0f/30.0f);
         }
         else {
-            d = (dist - dMax/2.0)/dMax*2; //[dMax/2 ... dMax] -> [0 ... 1]
-            res = -powf(d,5.0f)/120.0f + powf(d,4.0f)/24.0f - powf(d,3.0f)/12.0f + powf(d,2.0f)/12.0f - d/24.0f + 1.0f/120.0f;
+            d1 = (dist - dMax/2.0)/dMax*2; //[dMax/2 ... dMax] -> [0 ... 1]
+            d2 = d1*d1;
+            d3 = d2*d1;
+            d4 = d3*d1;
+            d5 = d4*d1;
+            res = (-d5/120.0f) + (d4/24.0f) - (d3/12.0f) + (d2/12.0f) - (d1/24.0f) + (1.0f/120.0f);
         }
     }
     else
@@ -226,7 +237,7 @@ void waveShapeSmps(int n,
             }
             break;
         case 15:
-            // f(x) = x / ((1+|x|^n)^1/n) // tanh approximation for n=2.5
+            // f(x) = x / ((1+|x|^n)^(1/n)) // tanh approximation for n=2.5
             // Formula from: Yeh, Abel, Smith (2007): SIMPLIFIED, PHYSICALLY-INFORMED MODELS OF DISTORTION AND OVERDRIVE GUITAR EFFECTS PEDALS
             par = (100.0f/3.0f) * par * par - (7.0f/3.0f) * par + 1.0f;  //Pfunpar=32 -> n=2.5
             ws = ws * ws * 35.0f + 0.0001f;
@@ -246,13 +257,8 @@ void waveShapeSmps(int n,
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws;
                 smps[i] += offs;
-                if(fabs(smps[i]) < 1.0f) {
-                    
+                if(fabs(smps[i]) < 1.0f)
                     smps[i] = 1.5 * (smps[i] - (powf(smps[i], 3.0) / 3.0) );
-                    
-                    if(ws < 1.0f)
-                        smps[i] /= ws;
-                }
                 else
                     smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
             }
@@ -273,7 +279,6 @@ void waveShapeSmps(int n,
                 }
                 else
                     smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
-                smps[i] -= offs;
             }
             break;
     }
