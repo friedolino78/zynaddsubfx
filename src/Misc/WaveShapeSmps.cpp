@@ -137,14 +137,20 @@ void waveShapeSmps(int n,
             par = par/4;
             if (par > ws - 0.01) par = ws - 0.01;
             for(i = 0; i < n; ++i) {
-                smps[i] += offs;
+                smps[i] += offs; // apply the offset
                 float res = polyblampres(smps[i], ws, par);
-
+                // now apply the polyblamped limiter
                 if (smps[i]>=0)
                     smps[i] = ( smps[i] > ws ? ws-res : smps[i]-res );
                 else
                     smps[i] = ( smps[i] < -ws ? -ws+res : smps[i]+res );
-                smps[i] -= offs;
+                // and remove the offset
+                if (offs>=0)
+                    smps[i] -= ( offs >= ws ? ws-res : offs-res );
+                else
+                    smps[i] -= ( offs <= -ws ? -ws+res : offs+res );
+                // divide through the drive factor (new)
+                smps[i] /= ws;
 
             }
             break;
@@ -224,7 +230,8 @@ void waveShapeSmps(int n,
             else
                 tmpv = 0.5f - 1.0f / (expf(ws) + 1.0f);
             for(i = 0; i < n; ++i) {
-                smps[i] += offs;
+                smps[i] += offs; //add offset
+                // calculate sigmoid function
                 float tmp = smps[i] * ws;
                 if(tmp < -10.0f)
                     tmp = -10.0f;
@@ -232,21 +239,29 @@ void waveShapeSmps(int n,
                 if(tmp > 10.0f)
                     tmp = 10.0f;
                 tmp     = 0.5f - 1.0f / (expf(tmp) + 1.0f);
+                // calculate the same for offset value
+                float tmpo = offs * ws;
+                if(tmpo < -10.0f)
+                    tmpo = -10.0f;
+                else
+                if(tmpo > 10.0f)
+                    tmpo = 10.0f;
+                tmpo     = 0.5f - 1.0f / (expf(tmpo) + 1.0f);
+                
                 smps[i] = tmp / tmpv;
-                smps[i] -= offs;
+                smps[i] -= tmpo / tmpv; // substract offset
             }
             break;
         case 15:
             // f(x) = x / ((1+|x|^n)^(1/n)) // tanh approximation for n=2.5
             // Formula from: Yeh, Abel, Smith (2007): SIMPLIFIED, PHYSICALLY-INFORMED MODELS OF DISTORTION AND OVERDRIVE GUITAR EFFECTS PEDALS
-            par = (100.0f/3.0f) * par * par - (7.0f/3.0f) * par + 1.0f;  //Pfunpar=32 -> n=2.5
-            ws = ws * ws * 35.0f + 0.0001f;
+            par = (20.0f) * par * par + (0.1f) * par + 1.0f;  //Pfunpar=32 -> n=2.5
+            ws = ws * ws * 35.0f + 1.0f;
             for(i = 0; i < n; ++i) {
-                smps[i] *= ws;
-                smps[i] += offs;
+                smps[i] *= ws;// multiply signal to drive it in the saturation of the function
+                smps[i] += offs; // add dc offset
                 smps[i] = smps[i] / powf(1+powf(fabs(smps[i]), par), 1/par);
-                smps[i] -= offs;
-                smps[i] /= ws;
+                smps[i] -= offs / powf(1+powf(fabs(offs), par), 1/par);
             }
             break;
         case 16:
@@ -255,12 +270,14 @@ void waveShapeSmps(int n,
             // modified with factor 1.5 to go through [1,1] and [-1,-1]
             ws = powf(ws, 3.5f) * 20.0f + 1.0f; //cubic soft limiter
             for(i = 0; i < n; ++i) {
-                smps[i] *= ws;
-                smps[i] += offs;
+                smps[i] *= ws; // multiply signal to drive it in the saturation of the function
+                smps[i] += offs; // add dc offset
                 if(fabs(smps[i]) < 1.0f)
                     smps[i] = 1.5 * (smps[i] - (powf(smps[i], 3.0) / 3.0) );
                 else
                     smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
+                //substract offset with distorsion function applied
+                smps[i] -= 1.5 * (offs - (powf(offs, 3.0) / 3.0)); 
             }
             break;
         case 17:
@@ -268,17 +285,14 @@ void waveShapeSmps(int n,
         // Formula of 16 changed to square but still going through [1,1] and [-1,-1]
             ws = ws * ws * ws * 20.0f + 1.0f; //square soft limiter
             for(i = 0; i < n; ++i) {
-                smps[i] *= ws;
-                smps[i] += offs;
-                if(fabs(smps[i]) < 1.0f) {
-                    
+                smps[i] *= ws; // multiply signal to drive it in the saturation of the function
+                smps[i] += offs; // add dc offset
+                if(fabs(smps[i]) < 1.0f)
                     smps[i] = smps[i]*(2-fabs(smps[i]));
-                    
-                    if(ws < 1.0f)
-                        smps[i] /= ws;
-                }
                 else
                     smps[i] = (smps[i] > 0 ? 1.0f : -1.0f);
+                //substract offset with distorsion function applied
+                smps[i] -= offs*(2-fabs(offs));
             }
             break;
     }
