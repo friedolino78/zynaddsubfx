@@ -137,19 +137,20 @@ void waveShapeSmps(int n,
             par = par/4;
             if (par > ws - 0.01) par = ws - 0.01;
             for(i = 0; i < n; ++i) {
-                smps[i] += offs; // apply the offset
+                // add the offset: x = smps[i] + offs
+                smps[i] += offs; 
                 float res = polyblampres(smps[i], ws, par);
-                // now apply the polyblamped limiter
+                // now apply the polyblamped limiter: y = f(x)
                 if (smps[i]>=0)
                     smps[i] = ( smps[i] > ws ? ws-res : smps[i]-res );
                 else
                     smps[i] = ( smps[i] < -ws ? -ws+res : smps[i]+res );
-                // and remove the offset
+                // and substract the polyblamp-limited offset again: smps[i] = y - f(offs)
                 if (offs>=0)
                     smps[i] -= ( offs >= ws ? ws-res : offs-res );
                 else
                     smps[i] -= ( offs <= -ws ? -ws+res : offs+res );
-                // divide through the drive factor (new)
+                // divide through the drive factor: prevents limited signals to get low
                 smps[i] /= ws;
 
             }
