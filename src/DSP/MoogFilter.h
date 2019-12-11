@@ -13,9 +13,12 @@
 
 #pragma once
 #include "Filter.h"
+#include <vector>
 
 namespace zyn {
 
+
+        
 class MoogFilter:public Filter
 {
     public:
@@ -28,13 +31,32 @@ class MoogFilter:public Filter
         void setfreq(float /*frequency*/) override;
         void setfreq_and_q(float frequency, float q_) override;
         void setq(float /*q_*/) override;
-
         void setgain(float dBgain) override;
     private:
-        struct moog_filter *data;
-        struct moog_filter *data_old;
         unsigned sr;
         float gain;
+        
+        float step(float x);
+        void make_filter(float ff, float k);
+        std::vector<float> impulse_response(float alpha, float k);
+        float tanhd(const float x, const float d, const float s);
+        
+        float b[4] = { 0, 0, 0, 0 };
+        float compensation, estimate, c, c2, fb;
+        float xx, y0, y1, y2, y3;
+        float t0, t1, t2, t3;
+        float g0, g1, g2, g3;
+        float z0, z1, z2, z3;
+        float f0, f1, f2, f3;
+        float cgfbr, f, fd2;
+        float a = 2.0f;
+        float s = 0.1f;
+        float d = 1.0f;
+        
+
+        
+
+        
 };
 
 }

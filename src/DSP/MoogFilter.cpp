@@ -1,5 +1,5 @@
 #include <cstdio>
-#include <vector>
+
 #include <cmath>
 
 #include "../Misc/Matrix.h"
@@ -7,95 +7,103 @@
 
 namespace zyn{
 
-// ``A matrix approach to the Moog ladder filter'',
-// Raph Levien 2013
-//
-// http://levien.com/ladder.pdf
+// `Cheap non-linear zero-delay filters',
+// version from aciddose
+// https://www.kvraudio.com/forum/viewtopic.php?f=33&t=349859&start=285 (function cascade_4)
 
-template<class T, std::size_t r, std::size_t c>
-Matrix<T, r, c> nle(const Matrix<T, r, c> &m)
+#define LIMIT(x,lu, ll) (x>lu ? lu : (x<ll ? ll : x) )
+#define CLAMP(x, f) (x/f / powf(1.0+powf(fabs(x/f), 12.0), 1.0/12.0)*f)
+
+inline float MoogFilter::tanhd(const float x, const float d = 1.0f, const float s=0.1f)
+	{
+		return 1.0f - s * (d + 1.0f) * x*x / (d + x*x);
+		//return tanh(x) /x;
+	}
+
+
+float MoogFilter::step(float input)
 {
-    // encapsulate tanhf for the case it's a macro
-    return m.apply([](float x) -> float { return tanhf(x); });
+   // per-sample computation
+   t0 = tanhd(b[0] + a, d, s);
+   t1 = tanhd(b[1] + a, d, s);
+   t2 = tanhd(b[2] + a, d, s);
+   t3 = tanhd(b[3] + a, d, s);
+
+   g0 = 1.0f / (1.0f + c*t0);
+   g1 = 1.0f / (1.0f + c*t1);
+   g2 = 1.0f / (1.0f + c*t2);
+   g3 = 1.0f / (1.0f + c*t3);
+
+   z0 = c*t0 / (1.0f + c*t0);
+   z1 = c*t1 / (1.0f + c*t1);
+   z2 = c*t2 / (1.0f + c*t2);
+   z3 = c*t3 / (1.0f + c*t3);
+
+   f3 = c       * t2*g3;
+   f2 = c*c     * t1*g2 * t2*g3;
+   f1 = c*c*c   * t0*g1 * t1*g2 * t2*g3;
+   f0 = c*c*c*c *    g0 * t0*g1 * t1*g2 * t2*g3;
+
+    //b[0] = LIMIT(b[0], 1.0f, -1.0f);
+
+   estimate =
+       g3 * b[3] +
+       f3 * g2 * b[2] +
+       f2 * g1 * b[1] +
+       f1 * g0 * b[0] +
+       f0 * input;
+
+    // feedback gain coefficient, absolutely critical to get this correct
+    // i believe in the original this is computed incorrectly?
+    cgfbr = 1.0f / (1.0f + fb * z0*z1*z2*z3);
+
+    // clamp can be a hard clip, a diode + highpass is better
+    // if you implement a highpass do not forget to include it in the computation of the gain coefficients!
+    xx = input - CLAMP(fb * estimate, 1.0f) * cgfbr;
+    y0 = t0 * g0 * (b[0] + c * xx);
+    y1 = t1 * g1 * (b[1] + c * y0);
+    y2 = t2 * g2 * (b[2] + c * y1);
+    y3 = t3 * g3 * (b[3] + c * y2);
+
+    b[0] += c2 * (xx - y0);
+    b[1] += c2 * (y0 - y1);
+    b[2] += c2 * (y1 - y2);
+    b[3] += c2 * (y2 - y3);
+
+    // you must limit the compensation if feedback is clamped
+    return y3 * compensation;
 }
 
-struct moog_filter
+void MoogFilter::make_filter(float ff, float q)
 {
-    Matrix<float, 4, 1> B;
-    Matrix<float, 4, 4> C;
-    Matrix<float, 4, 1> y;
-    float k;
-};
-
-float step(moog_filter &mf, float x)
-{
-    mf.y += mf.B*tanhf(x-mf.k*mf.y(3,0)) + mf.C*nle(mf.y);
-    return mf.y(3,0);
+				ff = LIMIT(ff,0.41f,0.0001f); // makes overflow if higher
+				f = tan(3.64f * ff); // tunes to AnalogFilter
+        c = f;
+        c2 = 2.0 * f;
+        fb = cbrtf(q/1000)*10.0 - 0.45; // flattening
+        compensation = 1.0f + LIMIT(fb, 1.0, 0);
+        printf("fb = %f\n", fb);
+				printf("ff = %f\n", ff);
 }
 
-moog_filter make_filter(float alpha, float k, int N)
+std::vector<float> MoogFilter::impulse_response(float alpha, float k)
 {
-    float a = alpha / (1<<N);
-    float b = 1-a;
-
-    std::array<float, 25> init = {
-        1, 0, 0, 0, 0,
-        a, b, 0, 0, -k*a,
-        0, a, b, 0, 0,
-        0, 0, a, b, 0,
-        0, 0, 0, a, b
-    };
-
-    Matrix<float, 5,5> m(init);
-    for(int i=0; i<N; ++i)
-        m = m*m;
-
-    Matrix<float, 4,1> B;
-    Matrix<float, 4,4> C;
-
-    for(std::size_t i=0; i<4; ++i)
-        B(i,0) = m(1+i,0);
-    
-    for(std::size_t i=0; i<4; ++i)
-        for(std::size_t j=0; j<4; ++j)
-            C(i,j) = m(1+i,1+j);
-
-    for(std::size_t i=0; i<4; ++i)
-        C(i,i) -= 1;
-
-    for(std::size_t i=0; i<4; ++i)
-        C(i,i) += k*B(i,0);
-
-    return moog_filter{B, C, Matrix<float, 4,1>(), k};
-}
-
-std::vector<float> impulse_response(float alpha, float k)
-{
-    moog_filter filter = make_filter(alpha, k, 10);
+    this->make_filter(alpha, k);
 
     int ir_len = 10000;
 
     std::vector<float> output;
-    output.push_back(step(filter, 1.0f));
+    output.push_back(step(1.0f));
     for(int i=0; i<ir_len-1; ++i)
-        output.push_back(step(filter, 0.0f));
+        output.push_back(this->step(0.0f));
 
 
-    moog_filter filter2 = make_filter(2*alpha, k, 10);
-    filter2.y = filter.y;
+    make_filter(2*alpha, k);
     for(int i=0; i<ir_len-1; ++i)
-        output.push_back(step(filter2, 0.0f));
+        output.push_back(this->step(0.0f));
 
     return output;
 }
-
-//int main(int argc, const char **argv)
-//{
-//    std::vector<float> ir = impulse_response(0.01f, 0.9f);
-//    for(int i=0; i<(int)ir.size(); ++i)
-//        printf("%d %f\n", i, ir[i]);
-//    return 0;
-//}
 
 MoogFilter::MoogFilter(float Ffreq, float Fq,
         unsigned char non_linear_element,
@@ -104,21 +112,18 @@ MoogFilter::MoogFilter(float Ffreq, float Fq,
 {
     (void) non_linear_element; // TODO
 
-    moog_filter *filter = new moog_filter{Matrix<float,4,1>(),Matrix<float,4,4>(),Matrix<float,4,1>(),0.0f};
-    *filter = make_filter(Ffreq/srate, Fq, 10);
-    data = filter;
+    this->make_filter(Ffreq/srate, Fq);
 
 }
 
 MoogFilter::~MoogFilter(void)
 {
-    delete data;
+
 }
 void MoogFilter::filterout(float *smp)
 {
-    moog_filter *filter = data;
     for(int i=0; i<buffersize; ++i)
-        smp[i] = zyn::step(*filter, gain*smp[i]);
+        smp[i] = this->step(gain*smp[i]);
 }
 void MoogFilter::setfreq(float /*frequency*/)
 {
@@ -127,13 +132,8 @@ void MoogFilter::setfreq(float /*frequency*/)
 
 void MoogFilter::setfreq_and_q(float frequency, float q_)
 {
-    // TODO: avoid allocation?
-    moog_filter *old_filter = data;
-    moog_filter *new_filter = new moog_filter{Matrix<float,4,1>(),Matrix<float,4,4>(),Matrix<float,4,1>(),0.0f};
-    *new_filter = make_filter(frequency*3.0f/sr, q_/4.0f, 10);
-    new_filter->y = old_filter->y;
-    delete old_filter;
-    data = new_filter;
+    this->make_filter(frequency/sr, q_);
+
 }
 
 void MoogFilter::setq(float /*q_*/)
