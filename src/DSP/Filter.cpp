@@ -73,4 +73,19 @@ float Filter::getrealfreq(float freqpitch)
     return powf(2.0f, freqpitch + 9.96578428f); //log2(1000)=9.95748f
 }
 
+void Filter::setpar1(float par)
+{
+    par1 = par;
+}
+
+void Filter::setpar2(float par)
+{
+    par2 = par;
+}
+
+void Filter::setpar3(float par)
+{
+    par3 = par;
+}
+
 }

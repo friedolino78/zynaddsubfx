@@ -33,14 +33,17 @@ ModFilter::ModFilter(const FilterParams &pars_,
     :pars(pars_), synth(synth_), time(time_), alloc(alloc_),
     baseQ(pars.getq()), baseFreq(pars.getfreq()),
     noteFreq(notefreq),
-    left(nullptr), 
+    left(nullptr),
     right(nullptr),
     env(nullptr),
-    lfo(nullptr)  
+    lfo(nullptr)
 {
     tracking = pars.getfreqtracking(notefreq);
     baseQ    = pars.getq();
     baseFreq = pars.getfreq();
+    par1    = pars.getpar1();
+    par2    = pars.getpar2();
+    par3    = pars.getpar3();
 
     left = Filter::generate(alloc, &pars,
             synth.samplerate, synth.buffersize);
@@ -55,7 +58,7 @@ ModFilter::~ModFilter(void)
     alloc.dealloc(left);
     alloc.dealloc(right);
 }
-        
+
 void ModFilter::addMod(LFO &lfo_)
 {
     lfo = &lfo_;
@@ -77,6 +80,9 @@ void ModFilter::update(float relfreq, float relq)
         baseFreq = pars.getfreq();
         baseQ    = pars.getq();
         tracking = pars.getfreqtracking(noteFreq);
+        par1    = pars.getpar1();
+        par2    = pars.getpar2();
+        par3    = pars.getpar3();
     }
 
     //Controller Free Center Frequency
@@ -93,8 +99,16 @@ void ModFilter::update(float relfreq, float relq)
     const float q = baseQ * relq;
 
     left->setfreq_and_q(Fc_Hz, q);
+    left->setpar1(par1);
+    left->setpar2(par2);
+    left->setpar3(par3);
     if(right)
-        right->setfreq_and_q(Fc_Hz, q);
+    {
+      right->setfreq_and_q(Fc_Hz, q);
+      right->setpar1(par1);
+      right->setpar2(par2);
+      right->setpar3(par3);
+    }
 }
 
 void ModFilter::updateNoteFreq(float noteFreq_)
@@ -109,7 +123,7 @@ void ModFilter::updateSense(float velocity, uint8_t scale,
     const float velScale = scale / 127.0f;
     sense = velScale * 6.0f * (VelF(velocity, func) - 1);
 }
-        
+
 void ModFilter::filter(float *l, float *r)
 {
     if(left && l)
@@ -138,7 +152,10 @@ void ModFilter::paramUpdate(Filter *&f)
     //Common parameters
     baseQ    = pars.getq();
     baseFreq = pars.getfreq();
-    
+    par1    = pars.getpar1();
+    par2    = pars.getpar2();
+    par3    = pars.getpar3();
+
     if(current_category(f) != pars.Pcategory) {
         alloc.dealloc(f);
         f = Filter::generate(alloc, &pars,

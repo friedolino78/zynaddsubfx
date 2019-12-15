@@ -91,6 +91,15 @@ const rtosc::Ports FilterParams::ports = {
             rPreset(sub_filter, 32000),
             rPreset(in_effect, 0x1.f3fffcp+9),
             "Base cutoff frequency"),
+    rParamF(par1,           rShort("NL St"),
+            rLinear(0.0, 0.4),
+            "Ladder per Stage Nonlinearity"),
+    rParamF(par2,           rShort("FB Cl"),
+            rLog(0.02, 20.0),
+            "Ladder Feedback Clamping"),
+    rParamF(par3,           rShort("FB NL"),
+            rLinear(1.0, 4.0),
+            "Ladder Feedback Nonlinearity"),
     rParamF(freqtracking,       rShort("f.track"), rUnit(%),
             rLinear(-100, 100), rDefault(0.0f),
             "Frequency Tracking amount"),
@@ -383,6 +392,9 @@ void FilterParams::defaults()
     basefreq  = powf(2.0f, basefreq + 9.96578428f);
     baseq     = expf(powf((float) Pq / 127.0f, 2) * logf(1000.0f)) - 0.9f;
 
+    par1 = 0.1;
+    par3 = 4.0;
+
     gain = 0.0f;
     freqtracking = 0.0f;
 
@@ -457,7 +469,6 @@ void FilterParams::getfromFilterParams(const FilterParams *pars)
     Pvowelclearness = pars->Pvowelclearness;
 }
 
-
 /*
  * Parameter control
  */
@@ -470,6 +481,20 @@ float FilterParams::getq() const
 {
     return baseq;
 }
+
+float FilterParams::getpar1() const
+{
+    return par1;
+}
+float FilterParams::getpar2() const
+{
+    return par2;
+}
+float FilterParams::getpar3() const
+{
+    return par3;
+}
+
 float FilterParams::getfreqtracking(float notefreq) const
 {
     return log2f(notefreq / 440.0f) * (freqtracking / 100.0);

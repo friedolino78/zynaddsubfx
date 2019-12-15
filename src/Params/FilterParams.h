@@ -49,6 +49,9 @@ class FilterParams:public PresetsArray
 
         float getfreq() const ;
         float getq() const ;
+        float getpar1() const ;
+        float getpar2() const ;
+        float getpar3() const ;
         float getfreqtracking(float notefreq) const ;
         float getgain() const ;
 
@@ -57,6 +60,9 @@ class FilterParams:public PresetsArray
         unsigned Pstages:8;    //< filter stages+1
         float    basefreq;     //< Base cutoff frequency (Hz)
         float    baseq;        //< Q parameters (resonance or bandwidth)
+        float    par1;
+        float    par2;
+        float    par3; 
         float    freqtracking; //< Tracking of center frequency with note frequency (percentage)
         float    gain;         //< filter's output gain (dB)
 

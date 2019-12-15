@@ -46,7 +46,7 @@ class ModFilter
         void svParamUpdate(SVFilter &sv);
         void anParamUpdate(AnalogFilter &an);
 
-        
+
         const FilterParams &pars;  //Parameters to Pull Updates From
         const SYNTH_T      &synth; //Synthesizer Buffer Parameters
         const AbsTime      &time;  //Time for RT Updates
@@ -56,6 +56,9 @@ class ModFilter
 
         float baseQ;    //filter sharpness
         float baseFreq; //base filter frequency
+        float par1;
+        float par2;
+        float par3;
         float noteFreq; //frequency note was initialized to
         float tracking; //shift due to note frequency
         float sense;    //shift due to note velocity

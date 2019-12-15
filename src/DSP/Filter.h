@@ -32,6 +32,9 @@ class Filter
         virtual void setfreq_and_q(float frequency, float q_) = 0;
         virtual void setq(float q_) = 0;
         virtual void setgain(float dBgain) = 0;
+        void setpar1(float par1);
+        void setpar2(float par2);
+        void setpar3(float par3);
 
     protected:
         float outgain;
@@ -45,6 +48,7 @@ class Filter
         float halfsamplerate_f;
         float buffersize_f;
         int   bufferbytes;
+        float par1, par2, par3;
 
         inline void alias()
         {
