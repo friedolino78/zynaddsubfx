@@ -110,6 +110,7 @@ void ADnote::setupVoice(int nvoice)
 
     param.OscilSmp->newrandseed(prng());
     voice.OscilSmp = NULL;
+    voice.WaveSmp = NULL;
     voice.FMSmp    = NULL;
     voice.VoiceOut = NULL;
 
@@ -164,6 +165,8 @@ void ADnote::setupVoice(int nvoice)
     //the extra points contains the first point
     voice.OscilSmp =
         memory.valloc<float>(synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES);
+    for (int w = 0; w<NoteVoicePar[nvoice].wavecount; w++) 
+        voice.WaveSmp[w] = memory.valloc<float>((synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES));
 
     //Get the voice's oscil or external's voice oscil
     int vc = nvoice;
@@ -175,6 +178,13 @@ void ADnote::setupVoice(int nvoice)
         pars.VoicePar[vc].OscilSmp->get(NoteVoicePar[nvoice].OscilSmp,
                 getvoicebasefreq(nvoice),
                 pars.VoicePar[nvoice].Presonance);
+    
+    for (int w=0; w<NoteVoicePar[nvoice].wavecount; w++) 
+    {
+        pars.VoicePar[vc].WaveSmp[w]->get(NoteVoicePar[nvoice].WaveSmp[w],
+                getvoicebasefreq(nvoice),
+                pars.VoicePar[nvoice].Presonance);
+    }
 
     // This code was planned for biasing the carrier in MOD_RING
     // but that's on hold for the moment.  Disabled 'cos small
@@ -194,7 +204,11 @@ void ADnote::setupVoice(int nvoice)
 
     //I store the first elements to the last position for speedups
     for(int i = 0; i < OSCIL_SMP_EXTRA_SAMPLES; ++i)
+    {
         voice.OscilSmp[synth.oscilsize + i] = voice.OscilSmp[i];
+        for (int w = 0; w < NoteVoicePar[nvoice].wavecount; w++)
+            voice.WaveSmp[w][synth.oscilsize + i] = voice.WaveSmp[w][i];
+    }
 
     voice.phase_offset = (int)((pars.VoicePar[nvoice].Poscilphase
                     - 64.0f) / 128.0f * synth.oscilsize + synth.oscilsize * 4);
@@ -1243,23 +1257,57 @@ inline void ADnote::ComputeVoiceOscillator_LinearInterpolation(int nvoice)
     }
 }
 
+/*
+ * Computes the Oscillator (Without Modulation) - BiLinearInterpolation
+*/
+
+/* As the code here is a bit odd due to optimization. Details at 
+ * ADnote::ComputeVoiceOscillator_LinearInterpolation
+ */
+
+inline void ADnote::ComputeVoiceOscillator_BiLinearInterpolation(int nvoice)
+{
+    Voice& vce = NoteVoicePar[nvoice];
+    for(int k = 0; k < vce.unison_size; ++k) {
+        int    poshi  = vce.oscposhi[k];
+        // convert floating point fractional part (sample interval phase) 
+        // with range [0.0 ... 1.0] to fixed point with 1 digit is 2^-24
+        // by multiplying with precalculated 2^24 and casting to integer:
+        int    poslo  = (int)(vce.oscposlo[k] * 16777216.0f);
+        int    freqhi = vce.oscfreqhi[k];
+        // same for phase increment:
+        int    freqlo = (int)(vce.oscfreqlo[k] * 16777216.0f);
+        
+        int    wavehi = vce.oscwavehi[k];
+        // same for wave parameter:
+        int    wavelo = (int)(vce.oscwavelo[k] * 16777216.0f);
+        
+        float *smpsA  = NoteVoicePar[nvoice].WaveSmp[wavelo];
+        float *smpsB  = NoteVoicePar[nvoice].WaveSmp[wavelo+1];
+        float *tw     = tmpwave_unison[k];
+        float smpA, smpB;
+        assert(vce.oscfreqlo[k] < 1.0f);
+        for(int i = 0; i < synth.buffersize; ++i) {
+            smpA  = (smpsA[poshi] * (0x01000000 - poslo) + smpsA[poshi + 1] * poslo)/(16777216.0f);
+            smpB  = (smpsB[poshi] * (0x01000000 - poslo) + smpsB[poshi + 1] * poslo)/(16777216.0f);
+            tw[i]  = (smpA * (0x01000000 - wavehi) + smpB * wavehi)/(16777216.0f);
+            poslo += freqlo;                // increment fractional part (sample interval phase)
+            poshi += freqhi + (poslo>>24);  // add overflow over 24 bits in poslo to poshi
+            poslo &= 0xffffff;              // remove overflow from poslo
+            poshi &= synth.oscilsize - 1;   // remove overflow
+        }
+        vce.oscposhi[k] = poshi;
+        vce.oscposlo[k] = poslo/(16777216.0f);
+    }
+}
+
 
 /*
  * Computes the Oscillator (Without Modulation) - windowed sinc Interpolation
  */
 
-/* As the code here is a bit odd due to optimization, here is what happens
- * First the current position and frequency are retrieved from the running
- * state. These are broken up into high and low portions to indicate how many
- * samples are skipped in one step and how many fractional samples are skipped.
- * Outside of this method the fractional samples are just handled with floating
- * point code, but that's a bit slower than it needs to be. In this code the low
- * portions are known to exist between 0.0 and 1.0 and it is known that they are
- * stored in single precision floating point IEEE numbers. This implies that
- * a maximum of 24 bits are significant. The below code does your standard
- * linear interpolation that you'll see throughout this codebase, but by
- * sticking to integers for tracking the overflow of the low portion, around 15%
- * of the execution time was shaved off in the ADnote test.
+/* As the code here is a bit odd due to optimization. Details at 
+ * ADnote::ComputeVoiceOscillator_LinearInterpolation
  */
 inline void ADnote::ComputeVoiceOscillator_SincInterpolation(int nvoice)
 {
@@ -1973,6 +2021,7 @@ void ADnote::Voice::releasekey()
 void ADnote::Voice::kill(Allocator &memory, const SYNTH_T &synth)
 {
     memory.devalloc(OscilSmp);
+    memory.devalloc(WaveSmp);
     memory.dealloc(FreqEnvelope);
     memory.dealloc(FreqLfo);
     memory.dealloc(AmpEnvelope);

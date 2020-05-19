@@ -84,12 +84,13 @@ class ADnote:public SynthNote
          * Affects tmpwave_unison and updates oscposhi/oscposlo*/
         inline void ComputeVoiceOscillator_LinearInterpolation(int nvoice);
         /**Compute the Oscillator's samples.
-         * Affects tmpwave_unison and updates oscposhi/oscposlo
-         * @todo remove this declaration if it is commented out*/
+         * Affects tmpwave_unison and updates oscposhi/oscposlo */
+        inline void ComputeVoiceOscillator_BiLinearInterpolation(int nvoice);
+        /**Compute the Oscillator's samples.
+         * Affects tmpwave_unison and updates oscposhi/oscposlo */
         inline void ComputeVoiceOscillator_SincInterpolation(int nvoice);
         /**Compute the Oscillator's samples.
-         * Affects tmpwave_unison and updates oscposhi/oscposlo
-         * @todo remove this declaration if it is commented out*/
+         * Affects tmpwave_unison and updates oscposhi/oscposlo */
         inline void ComputeVoiceOscillator_CubicInterpolation(int nvoice);
         /**Computes the Oscillator samples with mixing.
          * updates tmpwave_unison*/
@@ -191,6 +192,9 @@ class ADnote:public SynthNote
 
             /* Waveform of the Voice */
             float *OscilSmp;
+            
+            /* Wavefield of the Voice */
+            float **WaveSmp;
 
             /* preserved for phase mod PWM emulation. */
             int phase_offset;
@@ -266,15 +270,18 @@ class ADnote:public SynthNote
 
             //the size of unison for a single voice
             int unison_size;
+            
+            //the number of waves in the wavefield
+            int wavecount;
 
             //the stereo spread of the unison subvoices (0.0f=mono,1.0f=max)
             float unison_stereo_spread;
 
             //fractional part (skip)
-            float *oscposlo, *oscfreqlo;
+            float *oscposlo, *oscfreqlo, *oscwavelo;
 
             //integer part (skip)
-            int *oscposhi, *oscfreqhi;
+            int *oscposhi, *oscfreqhi, *oscwavehi;
 
             //fractional part (skip) of the Modullator
             float *oscposloFM, *oscfreqloFM;

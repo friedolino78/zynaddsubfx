@@ -164,7 +164,7 @@ struct ADnoteVoiceParam {
     unsigned char Pfilterbypass;
 
     /** Voice oscillator */
-    OscilGen *OscilSmp;
+    OscilGen *OscilSmp, **WaveSmp;
 
     /**********************************
     *     FREQUENCY PARAMETERS        *
