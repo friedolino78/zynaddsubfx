@@ -106,6 +106,31 @@ struct ADnoteGlobalParam {
 };
 
 
+/***********************************************************/
+/*                    WAVE PARAMETERS                      */
+/***********************************************************/
+struct ADnoteWaveParam {
+    ADnoteWaveParam() : time(nullptr), last_update_timestamp(0) { };
+    void getfromXML(XMLwrapper& xml, unsigned nvoice);
+    void add2XML(XMLwrapper& xml, bool fmoscilused);
+    void paste(ADnoteWaveParam &p);
+    void defaults(void);
+    void enable(const SYNTH_T &synth, FFTwrapper *fft, Resonance *Reson,
+                const AbsTime *time);
+    void kill(void);
+    
+    
+    /** Wave oscillator */
+    OscilGen *WaveSmp;
+    
+    unsigned char Presonance;
+    
+    const AbsTime *time;
+    int64_t last_update_timestamp;
+
+    static const rtosc::Ports &ports;
+};
+
 
 /***********************************************************/
 /*                    VOICE PARAMETERS                     */
@@ -143,6 +168,8 @@ struct ADnoteVoiceParam {
 
     /** Unison invert phase */
     unsigned char Unison_invert_phase; //0=none,1=random,2=50%,3=33%,4=25%
+    
+    ADnoteWaveParam NoteWavePar[NUM_WAVES];
 
     /** Type of the voice (0=Sound,1=Noise)*/
     unsigned char Type;
@@ -164,8 +191,11 @@ struct ADnoteVoiceParam {
     unsigned char Pfilterbypass;
 
     /** Voice oscillator */
-    OscilGen *OscilSmp, **WaveSmp;
-
+    OscilGen *OscilSmp;
+    
+    /** Wavetable Parameter */
+    unsigned char Pwavepar;
+    
     /**********************************
     *     FREQUENCY PARAMETERS        *
     **********************************/
@@ -233,7 +263,7 @@ struct ADnoteVoiceParam {
     unsigned char PAmpLfoEnabled;
     LFOParams    *AmpLfo;
 
-
+    ADnoteWaveParam  WavePar[NUM_WAVES];
 
     /*************************
     *   FILTER PARAMETERS    *

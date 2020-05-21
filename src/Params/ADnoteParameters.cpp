@@ -101,6 +101,10 @@ static const Ports voicePorts = {
         "FM Oscillator Phase"),
     rToggle(Pfilterbypass,   rShort("bypass"), rDefault(false),
         "Filter Bypass"),
+        
+    // Wavetable Stuff
+    rParamZyn(Pwavepar,   rShort("wave"),  rDefault(0),
+        "Wavetable Parameter"),
 
     //Freq Stuff
     rToggle(Pfixedfreq,      rShort("fixed"),  rDefault(false),
@@ -323,6 +327,28 @@ static const Ports voicePorts = {
 #undef rChangeCb
 
 #undef  rObject
+
+#define rObject ADnoteWaveParam
+
+#undef rChangeCb
+#define rChangeCb if (obj->time) { obj->last_update_timestamp = obj->time->time(); }
+static const Ports wavePorts = {
+    //Send Messages To Wave Oscillator Realtime Table
+    {"WaveSmp/", rDoc("Wave Oscillator"),
+        &OscilGen::ports,
+        rBOIL_BEGIN
+            if(obj->WaveSmp == NULL) return;
+        data.obj = obj->WaveSmp;
+        SNIP
+            OscilGen::realtime_ports.dispatch(msg, data);
+        if(data.matches == 0)
+            data.forward();
+        rBOIL_END},
+};
+
+
+#undef  rObject
+
 #define rObject ADnoteGlobalParam
 
 #define rChangeCb if (obj->time) { obj->last_update_timestamp = obj->time->time(); }
@@ -456,6 +482,7 @@ static const Ports adPorts = {//XXX 16 should not be hard coded
 #undef rChangeCb
 const Ports &ADnoteParameters::ports  = adPorts;
 const Ports &ADnoteVoiceParam::ports  = voicePorts;
+const Ports &ADnoteWaveParam::ports  = wavePorts;
 const Ports &ADnoteGlobalParam::ports = globalPorts;
 
 ADnoteParameters::ADnoteParameters(const SYNTH_T &synth, FFTwrapper *fft_,

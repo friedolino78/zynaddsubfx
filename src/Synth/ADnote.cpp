@@ -179,12 +179,7 @@ void ADnote::setupVoice(int nvoice)
                 getvoicebasefreq(nvoice),
                 pars.VoicePar[nvoice].Presonance);
     
-    for (int w=0; w<NoteVoicePar[nvoice].wavecount; w++) 
-    {
-        pars.VoicePar[vc].WaveSmp[w]->get(NoteVoicePar[nvoice].WaveSmp[w],
-                getvoicebasefreq(nvoice),
-                pars.VoicePar[nvoice].Presonance);
-    }
+
 
     // This code was planned for biasing the carrier in MOD_RING
     // but that's on hold for the moment.  Disabled 'cos small
@@ -250,6 +245,7 @@ void ADnote::setupVoice(int nvoice)
         (int)((expf(param.PDelay / 127.0f * logf(50.0f))
                     - 1.0f) / synth.buffersize_f / 10.0f * synth.samplerate_f);
 }
+
 
 int ADnote::setupVoiceUnison(int nvoice)
 {
@@ -904,6 +900,7 @@ void ADnote::initparameters(WatchManager *wm, const char *prefix)
                 vce.Filter->addMod(*vce.FilterLfo);
             }
         }
+        
 
         /* Voice Modulation Parameters Init */
         if((vce.FMEnabled != FMTYPE::NONE) && (vce.FMVoice < 0)) {
@@ -942,6 +939,8 @@ void ADnote::initparameters(WatchManager *wm, const char *prefix)
                 vce.oscposhiFM[k] %= synth.oscilsize;
             }
         }
+        
+        
 
         if(param.PFMFreqEnvelopeEnabled)
             vce.FMFreqEnvelope = memory.alloc<Envelope>(*param.FMFreqEnvelope,

@@ -55,6 +55,7 @@ class ADnote:public SynthNote
     private:
 
         void setupVoice(int nvoice);
+        void setupWave(int nwave, int nvoice);
         int  setupVoiceUnison(int nvoice);
         void setupVoiceDetune(int nvoice);
         void setupVoiceMod(int nvoice, bool first_run = true);
@@ -285,6 +286,11 @@ class ADnote:public SynthNote
 
             //fractional part (skip) of the Modullator
             float *oscposloFM, *oscfreqloFM;
+            
+            
+            struct Wave {
+                
+            } NoteWavePar[NUM_WAVES];
 
             //the unison base_value
             float *unison_base_freq_rap;

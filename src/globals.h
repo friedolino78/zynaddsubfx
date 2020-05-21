@@ -109,6 +109,11 @@ typedef std::complex<fftw_real> fft_t;
 #define NUM_VOICES 8
 
 /*
+ * The number of wavetables of additive synth for a voice
+ */
+#define NUM_WAVES 32
+
+/*
  * The polyphony (notes)
  */
 #define POLYPHONY 60
