@@ -38,6 +38,7 @@ using rtosc::RtData;
 #undef rChangeCb
 #define rChangeCb if (obj->time) { obj->last_update_timestamp = obj->time->time(); }
 static const Ports voicePorts = {
+    rRecurs(WavePar, NUM_WAVES),
     //Send Messages To Oscillator Realtime Table
     {"OscilSmp/", rDoc("Primary Oscillator"),
         &OscilGen::ports,
