@@ -110,7 +110,6 @@ void ADnote::setupVoice(int nvoice)
 
     param.OscilSmp->newrandseed(prng());
     voice.OscilSmp = NULL;
-    voice.WaveSmp = NULL;
     voice.FMSmp    = NULL;
     voice.VoiceOut = NULL;
 
@@ -165,8 +164,8 @@ void ADnote::setupVoice(int nvoice)
     //the extra points contains the first point
     voice.OscilSmp =
         memory.valloc<float>(synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES);
-    for (int w = 0; w<NoteVoicePar[nvoice].wavecount; w++) 
-        voice.WaveSmp[w] = memory.valloc<float>((synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES));
+    for (int w = 0; w<NUM_WAVES; w++) 
+        voice.NoteWavePar[w].WaveSmp = memory.valloc<float>((synth.oscilsize + OSCIL_SMP_EXTRA_SAMPLES));
 
     //Get the voice's oscil or external's voice oscil
     int vc = nvoice;
@@ -202,7 +201,7 @@ void ADnote::setupVoice(int nvoice)
     {
         voice.OscilSmp[synth.oscilsize + i] = voice.OscilSmp[i];
         for (int w = 0; w < NoteVoicePar[nvoice].wavecount; w++)
-            voice.WaveSmp[w][synth.oscilsize + i] = voice.WaveSmp[w][i];
+            voice.NoteWavePar[w].WaveSmp[synth.oscilsize + i] = voice.NoteWavePar[w].WaveSmp[i];
     }
 
     voice.phase_offset = (int)((pars.VoicePar[nvoice].Poscilphase
@@ -1281,8 +1280,8 @@ inline void ADnote::ComputeVoiceOscillator_BiLinearInterpolation(int nvoice)
         // same for wave parameter:
         int    wavelo = (int)(vce.oscwavelo[k] * 16777216.0f);
         
-        float *smpsA  = NoteVoicePar[nvoice].WaveSmp[wavelo];
-        float *smpsB  = NoteVoicePar[nvoice].WaveSmp[wavelo+1];
+        float *smpsA  = NoteVoicePar[nvoice].NoteWavePar[wavelo].WaveSmp;
+        float *smpsB  = NoteVoicePar[nvoice].NoteWavePar[wavelo+1].WaveSmp;
         float *tw     = tmpwave_unison[k];
         float smpA, smpB;
         assert(vce.oscfreqlo[k] < 1.0f);
@@ -2020,7 +2019,6 @@ void ADnote::Voice::releasekey()
 void ADnote::Voice::kill(Allocator &memory, const SYNTH_T &synth)
 {
     memory.devalloc(OscilSmp);
-    memory.devalloc(WaveSmp);
     memory.dealloc(FreqEnvelope);
     memory.dealloc(FreqLfo);
     memory.dealloc(AmpEnvelope);

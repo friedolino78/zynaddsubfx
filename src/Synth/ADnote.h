@@ -195,7 +195,7 @@ class ADnote:public SynthNote
             float *OscilSmp;
             
             /* Wavefield of the Voice */
-            float **WaveSmp;
+            //float **WaveSmp;
 
             /* preserved for phase mod PWM emulation. */
             int phase_offset;
@@ -289,6 +289,8 @@ class ADnote:public SynthNote
             
             
             struct Wave {
+                /* Waveform of the Wave */
+                float *WaveSmp;
                 
             } NoteWavePar[NUM_WAVES];
 
