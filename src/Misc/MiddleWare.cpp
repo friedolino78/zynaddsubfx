@@ -1232,6 +1232,7 @@ void save_cb(const char *msg, RtData &d)
 /*
  * BASE/part#/kititem#
  * BASE/part#/kit#/adpars/voice#/oscil/\*
+ * BASE/part#/kit#/adpars/voice#/wave#/oscil/\*
  * BASE/part#/kit#/adpars/voice#/mod-oscil/\*
  * BASE/part#/kit#/padpars/prepare
  * BASE/part#/kit#/padpars/oscil/\*
@@ -1242,6 +1243,13 @@ static rtosc::Ports middwareSnoopPorts = {
             STRINGIFY(NUM_VOICES) "/OscilSmp/", 0, &OscilGen::non_realtime_ports,
         rBegin;
         impl.obj_store.handleOscil(chomp(chomp(chomp(chomp(chomp(msg))))), d);
+        rEnd},
+    {"part#" STRINGIFY(NUM_MIDI_PARTS)
+        "/kit#" STRINGIFY(NUM_KIT_ITEMS) "/adpars/VoicePar#" 
+            STRINGIFY(NUM_VOICES) "/WavePar#" 
+            STRINGIFY(NUM_WAVES)"/WaveSmp/", 0, &OscilGen::non_realtime_ports,
+        rBegin;
+        impl.obj_store.handleOscil(chomp(chomp(chomp(chomp(chomp(chomp(msg)))))), d);
         rEnd},
     {"part#" STRINGIFY(NUM_MIDI_PARTS)
         "/kit#" STRINGIFY(NUM_KIT_ITEMS)
