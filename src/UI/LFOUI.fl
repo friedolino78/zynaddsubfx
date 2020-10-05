@@ -154,6 +154,12 @@ hide();} {}
           code0 {o->init("Pstretch");}
           class Fl_Osc_Dial
         }
+        Fl_Dial cutoff {
+          label {cut.}
+          tooltip {LFO cutoff} xywh {226 30 20 20} box ROUND_UP_BOX labelsize 10 maximum 127 step 1
+          code0 {o->init("Pcutoff");}
+          class Fl_Osc_Dial
+        }
         Fl_Button {} {
           label C
           callback {presetsui->copy(lfoparamswindow->loc());}

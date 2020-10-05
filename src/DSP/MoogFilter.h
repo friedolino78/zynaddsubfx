@@ -49,6 +49,11 @@ class MoogFilter:public Filter
 // for Cheap non-linear zero-delay filters 
         float tanhdx(const float x, const float d, const float s);
         float tanhd(const float x);
+        float smoothABS( float x, const float y);
+        float smoothclip(float x, const float a, const float b);
+        float tanhsoftlimiter(float x, const float gain, const float offset = 0.0, const float par = 8.0);
+        float softlimiter8 (float x, const float drive, const float offset, const float ammount);
+        float softlimiter4 (float x, const float drive, const float offset, const float ammount)
         float x2;
         float fb, f;
         float ff;
