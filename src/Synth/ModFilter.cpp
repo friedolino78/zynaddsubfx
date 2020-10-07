@@ -20,6 +20,8 @@
 #include "../DSP/AnalogFilter.h"
 #include "../DSP/FormantFilter.h"
 #include "../DSP/MoogFilter.h"
+#include "../DSP/MS20Filter.h"
+#include "../DSP/DiodeFilter.h"
 #include <cassert>
 
 namespace zyn {
@@ -125,7 +127,7 @@ static int current_category(Filter *f)
         return 1;
     else if(dynamic_cast<SVFilter*>(f))
         return 2;
-    else if(dynamic_cast<MoogFilter*>(f))
+    else if(dynamic_cast<DiodeFilter*>(f))
         return 3;
 
     assert(false);
@@ -151,6 +153,10 @@ void ModFilter::paramUpdate(Filter *&f)
         anParamUpdate(*an);
     else if(auto *mg = dynamic_cast<MoogFilter*>(f))
         mgParamUpdate(*mg);
+    else if(auto *ms = dynamic_cast<MS20Filter*>(f))
+        msParamUpdate(*ms);
+    else if(auto *df = dynamic_cast<DiodeFilter*>(f))
+        dfParamUpdate(*df);
 }
 
 void ModFilter::svParamUpdate(SVFilter &sv)
@@ -169,6 +175,16 @@ void ModFilter::anParamUpdate(AnalogFilter &an)
 void ModFilter::mgParamUpdate(MoogFilter &mg)
 {
     mg.setgain(pars.getgain());
+}
+
+void ModFilter::msParamUpdate(MS20Filter &ms)
+{
+    ms.setgain(pars.getgain());
+}
+
+void ModFilter::dfParamUpdate(DiodeFilter &df)
+{
+    df.setgain(pars.getgain());
 }
 
 }

@@ -68,6 +68,8 @@ class  Part;
 class  Filter;
 class  AnalogFilter;
 class  MoogFilter;
+class  MS20Filter;
+class  DiodeFilter;
 class  SVFilter;
 class  FormantFilter;
 class  ModFilter;

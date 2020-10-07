@@ -46,6 +46,8 @@ class ModFilter
         void svParamUpdate(SVFilter &sv);
         void anParamUpdate(AnalogFilter &an);
         void mgParamUpdate(MoogFilter &mg);
+        void msParamUpdate(MS20Filter &ms);
+        void dfParamUpdate(DiodeFilter &df);
 
         
         const FilterParams &pars;  //Parameters to Pull Updates From

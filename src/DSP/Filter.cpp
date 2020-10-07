@@ -20,6 +20,8 @@
 #include "FormantFilter.h"
 #include "SVFilter.h"
 #include "MoogFilter.h"
+#include "MS20Filter.h"
+#include "DiodeFilter.h"
 #include "../Params/FilterParams.h"
 #include "../Misc/Allocator.h"
 
@@ -54,7 +56,7 @@ Filter *Filter::generate(Allocator &memory, const FilterParams *pars,
                 filter->outgain = sqrt(filter->outgain);
             break;
         case 3:
-            filter = memory.alloc<MoogFilter>(Ftype, 1000.0f, pars->getq(), Fstages, srate, bufsize);
+            filter = memory.alloc<DiodeFilter>(Ftype, 1000.0f, pars->getq(), Fstages, srate, bufsize);
             filter->setgain(pars->getgain());
             break;
         default:

@@ -5,6 +5,8 @@ set(zynaddsubfx_dsp_SRCS
     DSP/FormantFilter.cpp
     DSP/SVFilter.cpp
     DSP/MoogFilter.cpp
+    DSP/MS20Filter.cpp
+    DSP/DiodeFilter.cpp
     DSP/Unison.cpp
     PARENT_SCOPE
 )
