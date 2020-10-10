@@ -20,6 +20,7 @@
 #include "../DSP/SVFilter.h"
 #include "../DSP/AnalogFilter.h"
 #include "../DSP/FormantFilter.h"
+#include "../DSP/MoogFilter.h"
 #include <cassert>
 
 namespace zyn {
@@ -132,6 +133,8 @@ static int current_category(Filter *f)
         return 1;
     else if(dynamic_cast<SVFilter*>(f))
         return 2;
+    else if(dynamic_cast<MoogFilter*>(f))
+        return 3;
 
     assert(false);
     return -1;
@@ -154,6 +157,8 @@ void ModFilter::paramUpdate(Filter *&f)
         svParamUpdate(*sv);
     else if(auto *an = dynamic_cast<AnalogFilter*>(f))
         anParamUpdate(*an);
+    else if(auto *mg = dynamic_cast<MoogFilter*>(f))
+        mgParamUpdate(*mg);
 }
 
 void ModFilter::svParamUpdate(SVFilter &sv)
@@ -167,6 +172,12 @@ void ModFilter::anParamUpdate(AnalogFilter &an)
     an.settype(pars.Ptype);
     an.setstages(pars.Pstages);
     an.setgain(pars.getgain());
+}
+
+void ModFilter::mgParamUpdate(MoogFilter &mg)
+{
+    mg.settype(pars.Ptype);
+    mg.setgain(pars.getgain());
 }
 
 }

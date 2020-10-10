@@ -450,10 +450,10 @@ formantfiltergraph->redraw();}
 //formant_q_dial->value(pars->Pvowels[nvowel].formants[nformant].q);
 //formant_amp_dial->value(pars->Pvowels[nvowel].formants[nformant].amp);
 if (nformant<numformants->value()) formantparsgroup->activate();
-	else formantparsgroup->deactivate();
+    else formantparsgroup->deactivate();
 
 if (nseqpos<sequencesize->value()) vowel_counter->activate();
-	else vowel_counter->deactivate();
+    else vowel_counter->deactivate();
 
 
 //vowel_counter->value(pars->Psequence[nseqpos].nvowel);} {}
@@ -492,11 +492,11 @@ if ((categ==0)||(categ==2)||(categ==3)) {
             case 2: svfiltertypechoice->show(); break;
             case 3: moogfiltertypechoice->show(); break;
         }
-	editbutton->hide();
+        editbutton->hide();
         formantparswindow->hide();
         cfreqdial->label("C.freq");
 } else {
-	editbutton->show();
+    editbutton->show();
         cfreqdial->label("BS.pos");
 };
 
