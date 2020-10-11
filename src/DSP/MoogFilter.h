@@ -40,9 +40,8 @@ class MoogFilter:public Filter
         
         // for "Cheap non-linear zero-delay filter" 
         float tanhXdX(const float x);
-        float tanh_5_4(const float x);
+        float tanhX(const float x);
         float tan_2(const float x);
-        float A, B;
         float x2, x4;
         float fb;
         float ff;
@@ -53,8 +52,7 @@ class MoogFilter:public Filter
         float t0, t1, t2, t3;
         
         float t2g3;
-        float t0g1;
-        float t1g2t2g3;
+        float t1g2;
         
         float g0, g1, g2, g3;
         float cmt0, cmt1, cmt2, cmt3;

@@ -6,8 +6,6 @@
 #include "../Misc/Util.h"
 #include "MoogFilter.h"
 
-#define CLAMP(x) tanh_5_4(x) 
-
 namespace zyn{
 
 MoogFilter::MoogFilter(unsigned char Ftype, float Ffreq, float Fq,
@@ -17,7 +15,7 @@ MoogFilter::MoogFilter(unsigned char Ftype, float Ffreq, float Fq,
     this->make_filter(Ffreq/srate, Fq);
     for (int i = 0; i>4; i++)
     {
-        b[i] = 0.0;
+        b[i] = 0.0f;
     }
 }
 
@@ -28,8 +26,8 @@ MoogFilter::~MoogFilter(void)
 
 void MoogFilter::make_filter(float ff, float q)
 {
-    fb = cbrtf(q/1000.0)*3.9 + 0.1; // flattening
-    compensation = 1.0f + limit(fb, (float)0.0, (float)1.0);
+    fb = cbrtf(q/1000.0f)*3.9f + 0.1f; // flattening
+    compensation = 1.0f + limit(fb, 0.0f, 1.0f);
 
     ff = limit(ff,0.0002f,0.49f);   // limit cutoff to prevent overflow
     c = tan_2(PI * ff);             // pre warp cutoff to map to reality
@@ -44,17 +42,14 @@ inline float MoogFilter::tan_2(const float x)
 {    
     //Pade approximation tan(x) hand tuned to map fCutoff 
     x2 = x*x;
-    A = 4.75*(22.3*x - 2*x2*x);
-    B = 105 - 45*x2 + x2*x2;
-    return (A/B);
+    return ((4.75f * (22.3f - 2.0f*x2)*x) / (105.0f - (45.0f + x2)*x2));
 }
 
-inline float MoogFilter::tanh_5_4(const float x)
+inline float MoogFilter::tanhX(const float x)
 {   
     // Pade approximation of tanh(x) used for input saturation
-    x2 = x*x; 
-    x4 = x2*x2;
-    return x*(945+105*x2+x4)/(945+420*x2+15*x4);
+    x2 = x*x;
+    return ((x2 + 105.0f)*x2 + 945.0f)*x / ((15.0f*x2 + 420.0f)*x2 + 945.0f);
 }
 
 
@@ -62,10 +57,10 @@ inline float MoogFilter::tanhXdX(float x)
 {
     // Pade approximation for tanh(x)/x used in filter stages
     x2 = x*x;
-    return ((x2 + 105)*x2 + 945) / ((15*x2 + 420)*x2 + 945);
+    return ((x2 + 105.0f)*x2 + 945.0f) / ((15.0f*x2 + 420.0f)*x2 + 945.0f);
 }
 
-float MoogFilter::step(float input)
+inline float MoogFilter::step(float input)
 {
 
 // `Cheap non-linear zero-delay filters',
@@ -101,14 +96,13 @@ float MoogFilter::step(float input)
     
     // pre calc some often used terms
     t2g3 = t2 * g3;
-    t1g2t2g3 = t1 * g2 * t2g3;
-    t0g1 = t0 * g1;
+    t1g2 = t1 * g2;
 
     // factored out of the feedback solution
     f3 = c * t2g3;
-    f2 = cp2 * t1g2t2g3;
-    f1 = cp3 * t0g1 * t1g2t2g3;
-    f0 = cp4 * g0 * t0g1 * t1g2t2g3;
+    f2 = cp2 * t1g2 * t2g3;
+    f1 = cp3 * t0*g1 * t1g2* t2g3;
+    f0 = cp4 * g0 * t0*g1 * t1g2* t2g3;
 
     // solve feedback 
     estimate =
@@ -125,7 +119,7 @@ float MoogFilter::step(float input)
     cgfbr = 1.0f / (1.0f + fb * z0*z1*z2*z3);
 
     // then solve the remaining outputs (with the non-linear gains here)
-    xx = input - CLAMP(fb * estimate) * cgfbr;
+    xx = input - tanhX(fb * estimate) * cgfbr;
     y0 = t0 * g0 * (b[0] + c * xx);
     y1 = t1 * g1 * (b[1] + c * y0);
     y2 = t2 * g2 * (b[2] + c * y1);
@@ -146,7 +140,7 @@ void MoogFilter::filterout(float *smp)
     
     for (int i = 0; i < buffersize; i ++)
         {
-            smp_t0 = tanh_5_4(smp[i]*gain);
+            smp_t0 = tanhX(smp[i]*gain);
             smp[i] = this->step((smp_t0 + smp_t1)/2.0); 
             smp_t1 = smp_t0;
             smp[i] *= outgain;
