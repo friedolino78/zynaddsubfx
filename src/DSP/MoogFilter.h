@@ -42,18 +42,15 @@ class MoogFilter:public Filter
         float tanhXdX(const float x);
         float tanhX(const float x);
         float tan_2(const float x);
+        float A, B;
         float x2, x4;
         float fb;
         float ff;
-        
         float b[4] = { 0, 0, 0, 0 };
         float compensation, estimate, c, cm2, cp2, cp3, cp4;
         float xx, y0, y1, y2, y3;
         float t0, t1, t2, t3;
-        
-        float t2g3;
-        float t1g2;
-        
+        float t1g2t2g3;
         float g0, g1, g2, g3;
         float cmt0, cmt1, cmt2, cmt3;
         float z0, z1, z2, z3;

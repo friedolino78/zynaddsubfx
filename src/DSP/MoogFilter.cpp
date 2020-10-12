@@ -42,7 +42,9 @@ inline float MoogFilter::tan_2(const float x)
 {    
     //Pade approximation tan(x) hand tuned to map fCutoff 
     x2 = x*x;
-    return ((4.75f * (22.3f - 2.0f*x2)*x) / (105.0f - (45.0f + x2)*x2));
+    A = 4.75f*(22.3f*x - 2.0f*x2*x);
+    B = 105.0f - 45.0f*x2 + x2*x2;
+    return (A/B);
 }
 
 inline float MoogFilter::tanhX(const float x)
@@ -83,26 +85,26 @@ inline float MoogFilter::step(float input)
     t2 = tanhXdX(b[2]);
     t3 = tanhXdX(b[3]);
 
-    // denominators for solutions of individual stages
+    // pre calc often used terms
     cmt0 = c*t0;
     cmt1 = c*t1;
     cmt2 = c*t2;
     cmt3 = c*t3;
-
+    
+    // denominators for solutions of individual stages
     g0 = 1.0f / (1.0f + cmt0);
     g1 = 1.0f / (1.0f + cmt1);
     g2 = 1.0f / (1.0f + cmt2);
     g3 = 1.0f / (1.0f + cmt3);
     
-    // pre calc some often used terms
-    t2g3 = t2 * g3;
-    t1g2 = t1 * g2;
+    // pre calc often used term
+    t1g2t2g3 = t1 * g2 * t2 * g3;
 
     // factored out of the feedback solution
-    f3 = c * t2g3;
-    f2 = cp2 * t1g2 * t2g3;
-    f1 = cp3 * t0*g1 * t1g2* t2g3;
-    f0 = cp4 * g0 * t0*g1 * t1g2* t2g3;
+    f3 = c * t2 * g3;
+    f2 = cp2 * t1g2t2g3;
+    f1 = cp3 * t0 * g1 * t1g2t2g3;
+    f0 = cp4 * g0 * t0 * g1 * t1g2t2g3;
 
     // solve feedback 
     estimate =
@@ -137,7 +139,6 @@ inline float MoogFilter::step(float input)
 
 void MoogFilter::filterout(float *smp)
 {
-    
     for (int i = 0; i < buffersize; i ++)
         {
             smp_t0 = tanhX(smp[i]*gain);
@@ -145,7 +146,6 @@ void MoogFilter::filterout(float *smp)
             smp_t1 = smp_t0;
             smp[i] *= outgain;
         }
-
         assert(smp[buffersize-1]<=10.0);
 }
 
