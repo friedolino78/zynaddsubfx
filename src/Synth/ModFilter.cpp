@@ -168,6 +168,7 @@ void ModFilter::anParamUpdate(AnalogFilter &an)
 
 void ModFilter::mgParamUpdate(MoogFilter &mg)
 {
+    mg.settype(pars.Ptype);
     mg.setgain(pars.getgain());
 }
 

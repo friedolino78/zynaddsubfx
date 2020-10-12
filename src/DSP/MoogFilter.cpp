@@ -12,11 +12,12 @@ MoogFilter::MoogFilter(unsigned char Ftype, float Ffreq, float Fq,
     unsigned int srate, int bufsize)
     :Filter(srate, bufsize), sr(srate), gain(1.0f), type(Ftype)
 {
-    this->make_filter(Ffreq/srate, Fq);
+    setfreq_and_q(Ffreq/srate, Fq);
     for (int i = 0; i>4; i++)
     {
         b[i] = 0.0f;
     }
+    //~ smp_t0 = 0.0f; // must be initialized for trapezoidal integration
 }
 
 MoogFilter::~MoogFilter(void)
@@ -24,34 +25,21 @@ MoogFilter::~MoogFilter(void)
 
 }
 
-void MoogFilter::make_filter(float ff, float q)
-{
-    fb = cbrtf(q/1000.0f)*3.9f + 0.1f; // flattening
-    compensation = 1.0f + limit(fb, 0.0f, 1.0f);
-
-    ff = limit(ff,0.0002f,0.49f);   // limit cutoff to prevent overflow
-    c = tan_2(PI * ff);             // pre warp cutoff to map to reality
-    
-    cm2 = c * 2.0;      // pre calculate some stuff outside the hot zone
-    cp2 = c * c;
-    cp3 = cp2 * c;
-    cp4 = cp2 * cp2;
-}
-
 inline float MoogFilter::tan_2(const float x)
 {    
     //Pade approximation tan(x) hand tuned to map fCutoff 
     x2 = x*x;
-    A = 4.75f*(22.3f*x - 2.0f*x2*x);
-    B = 105.0f - 45.0f*x2 + x2*x2;
-    return (A/B);
+    return ((4.75f*(22.3f*x - 2.0f*x2*x))/(105.0f - 45.0f*x2 + x2*x2));
 }
 
 inline float MoogFilter::tanhX(const float x)
 {   
     // Pade approximation of tanh(x) used for input saturation
+    // https://mathr.co.uk/blog/2017-09-06_approximating_hyperbolic_tangent.html
     x2 = x*x;
-    return ((x2 + 105.0f)*x2 + 945.0f)*x / ((15.0f*x2 + 420.0f)*x2 + 945.0f);
+    //~ return ((x2 + 105.0f)*x2 + 945.0f)*x / ((15.0f*x2 + 420.0f)*x2 + 945.0f); // unbound
+    return (x*(105+10*x2)/(105+(45+x2)*x2)); // bound to [-1 .. +1]
+    //~ return ((x*(10395+(1260+21*x2)*x2))/(10395+(4725+210*x2+x2*x2)*x2)); // bound to [-1 .. +1]
 }
 
 
@@ -65,19 +53,18 @@ inline float MoogFilter::tanhXdX(float x)
 inline float MoogFilter::step(float input)
 {
 
-// `Cheap non-linear zero-delay filters',
-//// LICENSE TERMS: Copyright 2012 Teemu Voipio
-// 
-// You can use this however you like for pretty much any purpose,
-// as long as you don't claim you wrote it. There is no warranty.
-//
-// Distribution of substantial portions of this code in source form
-// must include this copyright notice and list of conditions.
-//
-
-// version from aciddose
-// https://www.kvraudio.com/forum/viewtopic.php?f=33&t=349859&start=285 (function cascade_4)
-// slightly improved for performance (precalculations + tanh approximation) by Friedolino78
+    // `Cheap non-linear zero-delay filters',
+    //// LICENSE TERMS: Copyright 2012 Teemu Voipio
+    // 
+    // You can use this however you like for pretty much any purpose,
+    // as long as you don't claim you wrote it. There is no warranty.
+    //
+    // Distribution of substantial portions of this code in source form
+    // must include this copyright notice and list of conditions.
+    //
+    // based on the version from aciddose
+    // https://www.kvraudio.com/forum/viewtopic.php?f=33&t=349859&start=285 (function cascade_4)
+    // modified for performance (precalculations + tanh approximation) by Friedolino78
 
     // evaluate the transconductance gM(vIn) = iCtl * ( tanh( vIn ) / vIn )
     t0 = tanhXdX(b[0]);
@@ -140,28 +127,35 @@ inline float MoogFilter::step(float input)
 void MoogFilter::filterout(float *smp)
 {
     for (int i = 0; i < buffersize; i ++)
-        {
-            smp_t0 = tanhX(smp[i]*gain);
-            smp[i] = this->step((smp_t0 + smp_t1)/2.0); 
-            smp_t1 = smp_t0;
-            smp[i] *= outgain;
-        }
-        assert(smp[buffersize-1]<=10.0);
+    {
+        //~ smp_t0 = tanhX(smp[i]*gain);
+        //~ smp[i] = step((smp_t0 + smp_t1)/2.0); // trapezoidal integration
+        smp[i] = step(tanhX(smp[i]*gain));        // changes the phase response
+        //~ smp_t1 = smp_t0;                      // needs futher investigation 
+        smp[i] *= outgain;
+    }
 }
 
 void MoogFilter::setfreq_and_q(float frequency, float q_)
 {
-    this->make_filter(frequency/sr, q_);
+    setfreq(frequency/sr);
+    setq(q_);
 }
 
-void MoogFilter::setfreq(float frequency)
+void MoogFilter::setfreq(float ff)
 {
-
+    ff = limit(ff,0.0002f,0.48f);   // limit cutoff to prevent overflow
+    c = tan_2(PI * ff);             // pre warp cutoff to map to reality
+    cm2 = c * 2.0;      // pre calculate some stuff outside the hot zone
+    cp2 = c * c;
+    cp3 = cp2 * c;
+    cp4 = cp2 * cp2;
 }
 
-void MoogFilter::setq(float q_)
+void MoogFilter::setq(float q)
 {
-
+    fb = cbrtf(q/1000.0f)*4.0f + 0.1f; // flattening
+    compensation = 1.0f + limit(fb, 0.0f, 1.0f);
 }
 
 void MoogFilter::setgain(float dBgain)

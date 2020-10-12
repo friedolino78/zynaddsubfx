@@ -28,7 +28,7 @@ class MoogFilter:public Filter
         void setfreq_and_q(float frequency, float q_) override;
         void setq(float /*q_*/) override;
         void setgain(float dBgain) override;
-        void settype(unsigned char type);
+        void settype(unsigned char type); //
 
     private:
         unsigned sr;
@@ -36,17 +36,15 @@ class MoogFilter:public Filter
         unsigned char type;
         
         float step(float x);
-        void make_filter(float f, float q);
         
         // for "Cheap non-linear zero-delay filter" 
         float tanhXdX(const float x);
         float tanhX(const float x);
         float tan_2(const float x);
-        float A, B;
         float x2, x4;
         float fb;
         float ff;
-        float b[4] = { 0, 0, 0, 0 };
+        float b[4] = {0.0f,0.0f,0.0f,0.0f};
         float compensation, estimate, c, cm2, cp2, cp3, cp4;
         float xx, y0, y1, y2, y3;
         float t0, t1, t2, t3;
@@ -56,7 +54,7 @@ class MoogFilter:public Filter
         float z0, z1, z2, z3;
         float f0, f1, f2, f3;
         float cgfbr, fd2;
-        float smp_t1, smp_t0;
+        //~ float smp_t1, smp_t0;
 };
 
 }
