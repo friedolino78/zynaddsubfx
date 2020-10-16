@@ -52,9 +52,9 @@ class MoogFilter:public Filter
         float g0, g1, g2, g3;
         float cmt0, cmt1, cmt2, cmt3;
         float z0, z1, z2, z3;
+        float a0, a1, a2, a3, a4;
         float f0, f1, f2, f3;
         float cgfbr, fd2;
-        //~ float smp_t1, smp_t0;
 };
 
 }

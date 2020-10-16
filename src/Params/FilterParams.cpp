@@ -132,9 +132,8 @@ const rtosc::Ports FilterParams::ports = {
         rOptions(low, high, band, notch)
             rDoc("Filter Type"), 0, rOptionCb(Ptype)},
     {"type-moog::i", rProp(parameter) rShort("type")
-        rOptions(low)
+        rOptions(HP, BP, LP)
             rDoc("Filter Type"), 0, rOptionCb(Ptype)},
-
     //UI reader
     {"Pvowels:", rDoc("Get Formant Vowels"), NULL,
         [](const char *, RtData &d) {
