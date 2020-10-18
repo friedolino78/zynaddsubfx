@@ -307,6 +307,9 @@ class ADnote:public SynthNote
 
             //1 - if it is the fitst tick (used to fade in the sound)
             char firsttick;
+            
+            float twm1;
+            float r;
 
         } NoteVoicePar[NUM_VOICES];
 

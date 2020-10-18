@@ -94,6 +94,8 @@ ADnote::ADnote(ADnoteParameters *pars_, const SynthParams &spars,
         tmpwave_unison[k] = memory.valloc<float>(synth.buffersize);
         memset(tmpwave_unison[k], 0, synth.bufferbytes);
     }
+    
+    
 
     initparameters(wm, prefix);
     memory.endTransaction();
@@ -207,6 +209,7 @@ void ADnote::setupVoice(int nvoice)
         kth_start      = oscposhi_start +
             (int)(RND * pars.VoicePar[nvoice].Unison_phase_randomness /
                     127.0f * (synth.oscilsize - 1));
+                  
     }
 
     voice.FreqLfo      = NULL;
@@ -235,6 +238,9 @@ void ADnote::setupVoice(int nvoice)
     voice.DelayTicks =
         (int)((expf(param.PDelay / 127.0f * logf(50.0f))
                     - 1.0f) / synth.buffersize_f / 10.0f * synth.samplerate_f);
+                    
+    voice.twm1 = 0.07f;
+    voice.r = 0.4f;
 }
 
 int ADnote::setupVoiceUnison(int nvoice)
@@ -269,7 +275,7 @@ int ADnote::setupVoiceUnison(int nvoice)
         pars.getUnisonFrequencySpreadCents(nvoice);
     const float unison_real_spread = powf(2.0f, (unison_spread * 0.5f) / 1200.0f);
     const float unison_vibratto_a  =
-        pars.VoicePar[nvoice].Unison_vibratto / 127.0f; //0.0f .. 1.0f
+        pars.VoicePar[nvoice].Unison_vibratto / 127.0f; // 0.0f .. 1.0f
 
     const int true_unison = unison / (is_pwm ? 2 : 1);
     switch(true_unison) {
@@ -1128,7 +1134,7 @@ void ADnote::computecurrentparameters()
             voiceFilter->update(relfreq, ctl.filterq.relq);
         }
 
-        if(NoteVoicePar[nvoice].noisetype == 0) { //compute only if the voice isn't noise
+        if(NoteVoicePar[nvoice].noisetype == 0 || NoteVoicePar[nvoice].noisetype == 3) { //compute only if the voice isn't noise
             /*******************/
             /* Voice Frequency */
             /*******************/
@@ -1228,7 +1234,7 @@ inline void ADnote::ComputeVoiceOscillator_LinearInterpolation(int nvoice)
         int    freqhi = vce.oscfreqhi[k];
         // same for phase increment:
         int    freqlo = (int)(vce.oscfreqlo[k] * 16777216.0f);
-        float *smps   = NoteVoicePar[nvoice].OscilSmp;
+        float *smps   = vce.OscilSmp;
         float *tw     = tmpwave_unison[k];
         assert(vce.oscfreqlo[k] < 1.0f);
         for(int i = 0; i < synth.buffersize; ++i) {
@@ -1618,16 +1624,43 @@ inline void ADnote::ComputeVoicePinkNoise(int nvoice)
     }
 }
 
+
+//~ inline void ADnote::ComputeVoiceDC(int nvoice)
+//~ {
+    //~ for(int k = 0; k < NoteVoicePar[nvoice].unison_size; ++k) {
+        //~ float *tw = tmpwave_unison[k];
+        //~ for(int i = 0; i < synth.buffersize; ++i)
+            //~ tw[i] = 1.0f;
+    //~ }
+//~ }
+
+// inline void ADnote::ComputeVoiceLogisticMap(int nvoice)
 inline void ADnote::ComputeVoiceDC(int nvoice)
 {
+    Voice& vce = NoteVoicePar[nvoice];
     for(int k = 0; k < NoteVoicePar[nvoice].unison_size; ++k) {
+        // map the interger part of OSC freq to value range [3.5 ... 4.5]
+        // using range up to fNyquist which is 0.5 * synth.oscilsize_f
+        float alpha = 3.5f;
+        alpha += 0.25f * ((float)vce.oscfreqhi[k]) / (synth.oscilsize_f);
+        // add fractional part.
+        alpha += 0.25f * vce.oscfreqlo[k];
+        // use a pointer tw to the current tmpwave
         float *tw = tmpwave_unison[k];
-        for(int i = 0; i < synth.buffersize; ++i)
-            tw[i] = 1.0f;
+        // for calculating t[0] we need tw[-1]
+        // tw[-1] is the last sample of the last cycle and was stored in twm1
+        tw[0] = alpha * vce.twm1 * (1.0f - vce.twm1); 
+        for(int i = 1; i < synth.buffersize; ++i) {
+            tw[i] = alpha * tw[i-1] * (1.0f- tw[i-1]);
+        }
+        // store last sample to twm1 
+        // it will be used as tw[-1] in the next cycle
+        vce.twm1 = tw[synth.buffersize-1]; 
+        //~ printf("k:%d   alpha=%f  vce.oscfreqhi[k]=%d\n", k, alpha, vce.oscfreqhi[k]);
     }
+    
+    
 }
-
-
 
 /*
  * Compute the ADnote samples
