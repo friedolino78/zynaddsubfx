@@ -46,6 +46,7 @@ class LFOParams:public Presets
                   float delay_,
                   float fadein_,
                   char Pcontinous,
+                  float speedratio,
                   consumer_location_t loc,
                   const AbsTime* time_ = nullptr);
         ~LFOParams() override;
@@ -67,6 +68,8 @@ class LFOParams:public Presets
         float         delay; /**<delay (0=off)*/
         float         fadein; /**<fadein (0=off)*/
         unsigned char Pcontinous; /**<1 if LFO is continous*/
+        unsigned char ratiofixed; /**<1 if LFO syncs to BPM*/
+        float         speedratio;
         unsigned char Pstretch; /**<how the LFO is "stretched" according the note frequency (64=no stretch)*/
 
         //! what kind is the LFO (0 - frequency, 1 - amplitude, 2 - filter)
@@ -91,6 +94,7 @@ class LFOParams:public Presets
         float         Ddelay;
         float         Dfadein;
         unsigned char Dcontinous;
+        float         Dspeedratio;
 };
 
 }

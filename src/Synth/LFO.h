@@ -56,7 +56,8 @@ class LFO
         float lfointensity;
         //Amount Randomness
         float lfornd, lfofreqrnd;
-
+        // Ref to AbsTime object for time.tempo
+        const AbsTime &time;
         //Delay before starting
         RelTime delayTime;
         //Time to ramp in
