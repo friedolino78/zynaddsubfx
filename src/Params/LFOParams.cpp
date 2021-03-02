@@ -106,8 +106,8 @@ static const rtosc::Ports _ports = {
               rPreset(ad_voice_amp, 0.94),
               "Delay before LFO start\n0..4 second delay"),
     rParamF(fadein, rShort("fadein"), rSpecial(disable), rUnit(S),
-              rLinear(0.0, 4.0), rDefault(0),
-              "Time to ramp up LFO amplitude\n0..4 second"),
+              rLinear(0.0, 10.0), rDefault(0),
+              "Time to ramp up LFO amplitude\n0..10 second"),
     {"Pdelay::i", rShort("delay") rLinear(0,127)
      rDoc("Delay before LFO start\n0..4 second delay"), NULL,
     [](const char *msg, RtData &d)
