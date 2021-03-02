@@ -44,6 +44,7 @@ class LFOParams:public Presets
                   char PLFOtype_,
                   char Prandomness_,
                   float delay_,
+                  float fadein_,
                   char Pcontinous,
                   float speedratio,
                   consumer_location_t loc,
@@ -65,6 +66,7 @@ class LFOParams:public Presets
         unsigned char Prandomness; /**<randomness (0=off)*/
         unsigned char Pfreqrand; /**<frequency randomness (0=off)*/
         float         delay; /**<delay (0=off)*/
+        float         fadein; /**<fadein (0=off)*/
         unsigned char Pcontinous; /**<1 if LFO is continous*/
         unsigned char ratiofixed; /**<1 if LFO syncs to BPM*/
         float         speedratio;
@@ -90,6 +92,7 @@ class LFOParams:public Presets
         unsigned char DLFOtype;
         unsigned char Drandomness;
         float         Ddelay;
+        float         Dfadein;
         unsigned char Dcontinous;
         float         Dspeedratio;
 };

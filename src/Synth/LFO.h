@@ -60,6 +60,12 @@ class LFO
         const AbsTime &time;
         //Delay before starting
         RelTime delayTime;
+        //Time to ramp in
+        RelTime fadeInTime;
+        // ramp up factor
+        float ramp;
+        // store the constant out value before oscillating starts
+        float outConst;
 
         char  waveShape;
 

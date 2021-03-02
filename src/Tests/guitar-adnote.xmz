@@ -100,6 +100,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -135,6 +136,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0.598425" exact_value="0x3F193265" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -177,6 +179,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -276,6 +279,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0.944882" exact_value="0x3F71E3C8" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -316,6 +320,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="yes" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -360,6 +365,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -530,6 +536,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="yes" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -618,6 +625,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="yes" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -3715,6 +3723,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -3753,6 +3762,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
@@ -3795,6 +3805,7 @@ version-revision="6" ZynAddSubFX-author="Nasca Octavian Paul">
 <par name="randomness_amplitude" value="0" />
 <par name="randomness_frequency" value="0" />
 <par_real name="delay" value="0" exact_value="0x00000000" />
+<par_real name="fadein" value="0" exact_value="0x00000000" />
 <par name="stretch" value="64" />
 <par_bool name="continous" value="no" />
 <par_real name="speedratio" value="0" exact_value="0x00000000" />
