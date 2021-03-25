@@ -190,6 +190,7 @@ void SEQParams::defaults()
 {
     freq       = Dfreq;
     cutoff     = Dcutoff;
+    steps      = Dsteps;
     delay      = Ddelay;
     continous  = Dcontinous;
     speedratio = Dspeedratio;

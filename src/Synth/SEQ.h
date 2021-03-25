@@ -75,6 +75,8 @@ class SEQ
 
         float cutoff = 0.5f;
         
+        float neutralOut = 0.0f;
+        
         VecWatchPoint watchOut;
 };
 

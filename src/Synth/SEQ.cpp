@@ -51,6 +51,11 @@ SEQ::SEQ(const SEQParams &seqpars, float basefreq, const AbsTime &t, WatchManage
 
     z1 = 0.0;
     z2 = 0.0;
+    
+    if(seqpars_.fel == consumer_location_type_t::amp)
+        neutralOut = 1.0f;
+    else
+        neutralOut = 0.0f;
 }
 
 SEQ::~SEQ()
@@ -102,9 +107,9 @@ float SEQ::biquad(float input)
 
 float SEQ::seqout()
 {
-    if(delayTime.inFuture() || !seqpars_.steps) 
+    if(delayTime.inFuture() || seqpars_.steps == 0) 
     {
-        return 0.0f;
+        return neutralOut;
     }
     //update internals XXX TODO cleanup
     if ( ! seqpars_.time || seqpars_.last_update_timestamp == seqpars_.time->time())
@@ -123,7 +128,7 @@ float SEQ::seqout()
     
     switch(seqpars_.fel) {
         case consumer_location_type_t::amp:
-            seqintensity = 1.0f;//seqpars_.intensity ;
+            seqintensity = 1.0f;//seqpars_.intensity;
             break;
         case consumer_location_type_t::filter:
             seqintensity = 4.0f;//seqpars_.intensity * 4.0f;
