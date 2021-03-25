@@ -124,7 +124,7 @@ void SEQParams::setup()
 
 // TODO: reuse
 SEQParams::SEQParams(const AbsTime *time_) :
-    SEQParams(2.0f, 20.0f, 0, 0.0f, false, 0.0f, loc_unspecified, time_)
+    SEQParams(2.0f, MAX_CUTOFF, 0, 0.0f, false, 0.0f, loc_unspecified, time_)
 {
 }
 
@@ -154,11 +154,11 @@ SEQParams::SEQParams(consumer_location_t loc,
                                              last_update_timestamp(0) {
 
     auto init =
-        [&](float freq_, char cutoff_, unsigned char steps_, float val_)
+        [&](float freq_, char cutoff_, float val_)
     {
         Dfreq       = freq_;
         Dcutoff     = cutoff_;
-        Dsteps      = steps_;
+        Dsteps      = 0;
         Ddelay      = 0.0f;
         Dcontinous  = false;
         Dspeedratio = 1.0f;
@@ -171,13 +171,13 @@ SEQParams::SEQParams(consumer_location_t loc,
     };
 
     switch(loc)
-    {                    // (float freq_, char cutoff_, unsigned char steps_, float val_)
-        case ad_global_amp:    init(2.0f, MAX_CUTOFF, 8, 1.0f); break;
-        case ad_global_freq:   init(2.0f, MAX_CUTOFF, 8, 0.0f); break;
-        case ad_global_filter: init(2.0f, MAX_CUTOFF, 8, 0.0f); break;
-        case ad_voice_amp:     init(2.0f, MAX_CUTOFF, 8, 1.0f); break;
-        case ad_voice_freq:    init(2.0f, MAX_CUTOFF, 8, 0.0f); break;
-        case ad_voice_filter:  init(2.0f, MAX_CUTOFF, 8, 0.0f); break;
+    {                    // (float freq_, char cutoff_, float val_)
+        case ad_global_amp:    init(2.0f, MAX_CUTOFF, 1.0f); break;
+        case ad_global_freq:   init(2.0f, MAX_CUTOFF, 0.0f); break;
+        case ad_global_filter: init(2.0f, MAX_CUTOFF, 0.0f); break;
+        case ad_voice_amp:     init(2.0f, MAX_CUTOFF, 1.0f); break;
+        case ad_voice_freq:    init(2.0f, MAX_CUTOFF, 0.0f); break;
+        case ad_voice_filter:  init(2.0f, MAX_CUTOFF, 0.0f); break;
         default: throw std::logic_error("Invalid SEQ consumer location");
     }
     setup();
