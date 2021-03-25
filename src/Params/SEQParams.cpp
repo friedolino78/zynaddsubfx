@@ -77,7 +77,7 @@ static const rtosc::Ports _ports = {
         rLinear(0,20), rDefault(off), "select fixed ratio for BPM sync"),
     rParamF(speedratio, rShort("r"), rLinear(0.0f,8.0f), rDefault(0.0f),
             "ratio for BPM sync"),
-    rParamZyn(steps, rShort("steps"), rLinear(1,128), rDefault(8),
+    rParamZyn(steps, rShort("steps"), rLinear(0,128), rDefault(0),
             "number of steps"),
     rArrayF(sequence, NUM_SEQ_STEPS, rLinear(-1.0f,1.0f), rDefaultDepends(loc),
               rPreset(ad_global_freq, [0.0 0.0 0.0 ...]),   
@@ -124,7 +124,7 @@ void SEQParams::setup()
 
 // TODO: reuse
 SEQParams::SEQParams(const AbsTime *time_) :
-    SEQParams(2.0f, 20.0f, 8, 0.0f, false, 0.0f, loc_unspecified, time_)
+    SEQParams(2.0f, 20.0f, 0, 0.0f, false, 0.0f, loc_unspecified, time_)
 {
 }
 
@@ -140,10 +140,10 @@ SEQParams::SEQParams(float freq_,
                                              last_update_timestamp(0) {
     Dfreq       = freq_;
     Dcutoff     = cutoff_;
+    Dsteps      = steps_;
     Ddelay      = delay_;
     Dcontinous  = continous_;
     Dspeedratio = speedratio_;
-    Dsteps      = steps_;
 
     setup();
 }

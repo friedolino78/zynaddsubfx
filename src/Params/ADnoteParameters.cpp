@@ -826,7 +826,7 @@ void ADnoteVoiceParam::add2XML(XMLwrapper& xml, bool fmoscilused)
         AmpLfo->add2XML(xml);
         xml.endbranch();
     }
-    xml.addparbool("amp_seq_enabled", PAmpLfoEnabled);
+    xml.addparbool("amp_seq_enabled", PAmpSeqEnabled);
     if((PAmpSeqEnabled != 0) || (!xml.minimal)) {
         xml.beginbranch("AMPLITUDE_SEQ");
         AmpSeq->add2XML(xml);
