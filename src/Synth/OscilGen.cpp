@@ -62,6 +62,8 @@ const rtosc::Ports OscilGen::non_realtime_ports = {
             "Base function modulation parameter"),
     rParamZyn(Pwaveshaping, rShort("amount"), rDefault(64),
             "Degree Of Waveshaping"),
+    rParamZyn(Pwsoffset, rShort("offset"), rDefault(64),
+            "DC Offset Of Waveshaping Function"),
     rOption(Pwaveshapingfunction, rShort("distort"), rDefault(Undistorted),
             rOptions(Undistorted,
                 Arctangent, Asymmetric, Pow, Sine, Quantisize,
@@ -417,6 +419,7 @@ void OscilGen::defaults()
 
     Pwaveshapingfunction = 0;
     Pwaveshaping    = 64;
+    Pwsoffset    = 64;
     Pfiltertype     = 0;
     Pfilterpar1     = 64;
     Pfilterpar2     = 64;
@@ -619,6 +622,7 @@ void OscilGen::waveshape(fft_t *freqs)
 {
     oldwaveshapingfunction = Pwaveshapingfunction;
     oldwaveshaping = Pwaveshaping;
+    oldwsoffset = Pwsoffset;
     if(Pwaveshapingfunction == 0)
         return;
 
@@ -634,7 +638,7 @@ void OscilGen::waveshape(fft_t *freqs)
     normalize(tmpsmps, synth.oscilsize);
 
     //Do the waveshaping
-    waveShapeSmps(synth.oscilsize, tmpsmps, Pwaveshapingfunction, Pwaveshaping);
+    waveShapeSmps(synth.oscilsize, tmpsmps, Pwaveshapingfunction, Pwaveshaping, Pwsoffset);
 
     fft->smps2freqs(tmpsmps, freqs); //perform FFT
 }
@@ -1241,6 +1245,7 @@ void OscilGen::paste(OscilGen &o)
     COPY(Pbasefuncmodulationpar3);
 
     COPY(Pwaveshaping);
+    COPY(Pwsoffset);
     COPY(Pwaveshapingfunction);
     COPY(Pfiltertype);
     COPY(Pfilterpar1);
@@ -1289,6 +1294,7 @@ void OscilGen::add2XML(XMLwrapper& xml)
     xml.addpar("modulation_par3", Pmodulationpar3);
 
     xml.addpar("wave_shaping", Pwaveshaping);
+    xml.addpar("ws_offset", Pwsoffset);
     xml.addpar("wave_shaping_function", Pwaveshapingfunction);
 
     xml.addpar("filter_type", Pfiltertype);
@@ -1365,6 +1371,7 @@ void OscilGen::getfromXML(XMLwrapper& xml)
                                      Pmodulationpar3);
 
     Pwaveshaping = xml.getpar127("wave_shaping", Pwaveshaping);
+    Pwsoffset = xml.getpar127("ws_offset", Pwsoffset);
     Pwaveshapingfunction = xml.getpar127("wave_shaping_function",
                                           Pwaveshapingfunction);
 

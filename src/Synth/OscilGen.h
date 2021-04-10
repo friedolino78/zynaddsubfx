@@ -75,7 +75,7 @@ class OscilGen:public Presets
         unsigned char Pbasefuncmodulationpar1, Pbasefuncmodulationpar2,
                       Pbasefuncmodulationpar3; //the parameter of the base function modulation
 
-        unsigned char Pwaveshaping, Pwaveshapingfunction;
+        unsigned char Pwaveshaping, Pwaveshapingfunction, Pwsoffset;
         unsigned char Pfiltertype, Pfilterpar1, Pfilterpar2;
         bool          Pfilterbeforews;
         unsigned char Psatype, Psapar; //spectrum adjust
@@ -162,7 +162,7 @@ class OscilGen:public Presets
 
         //Internal Data
         unsigned char oldbasefunc, oldbasepar, oldhmagtype,
-                      oldwaveshapingfunction, oldwaveshaping;
+                      oldwaveshapingfunction, oldwaveshaping, oldwsoffset;
         int oldfilterpars, oldsapars, oldbasefuncmodulation,
             oldbasefuncmodulationpar1, oldbasefuncmodulationpar2,
             oldbasefuncmodulationpar3, oldharmonicshift;

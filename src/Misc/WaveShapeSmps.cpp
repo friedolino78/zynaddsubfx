@@ -214,9 +214,11 @@ void waveShapeSmps(int n,
             else
                 tmpv = 1.0f;
             for(i = 0; i < n; ++i) {
-                float tmp = smps[i] * ws;
-                if((tmp > -1.0f) && (tmp < 1.618034f))
+                float tmp = smps[i] * ws + offs;
+                if((tmp > -1.0f) && (tmp < 1.618034f)) {
                     smps[i] = tmp * (1.0f - tmp) / tmpv;
+                    smps[i] -= offs * (1.0f - offs) / tmpv;
+				}
                 else
                 if(tmp > 0.0f)
                     smps[i] = -1.0f;
