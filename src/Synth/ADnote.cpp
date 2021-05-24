@@ -23,6 +23,7 @@
 #include "../globals.h"
 #include "../Misc/Util.h"
 #include "../Misc/Allocator.h"
+#include "../Misc/WaveShapeSmps.h"
 #include "../Params/ADnoteParameters.h"
 #include "../Containers/ScratchString.h"
 #include "../Containers/NotePool.h"
@@ -1647,7 +1648,7 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
             tw[i] *= FMnewamplitude[nvoice];
         }
 
-    unsigned char Pcurbasefunc = pars.VoicePar[nvoice].OscilSmp->Pcurrentbasefunc;
+    //~ unsigned char Pcurbasefunc = pars.VoicePar[nvoice].OscilSmp->Pcurrentbasefunc;
     // WaveTable-specific code
     for(int k = 0; k < unison_size[nvoice]; ++k) {
         int    poshi  = oscposhi[nvoice][k];
@@ -1683,21 +1684,28 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
 
 //          minpar = std::min(minpar, par);
 //          maxpar = std::max(maxpar, par);
-            float rms = getWavenormals()[Pcurbasefunc-1]
-                            [(std::size_t)(par*511.0f)];
+            //float rms = getWavenormals()[Pcurbasefunc-1][(std::size_t)(par*511.0f)];
 
             tw[i]  = func(oscil_pos, par);
             //~ printf("oscil_pos: %f\n", oscil_pos);
-            tw[i] /= rms;
+            //tw[i] /= rms;
             poslo += freqlo;
             poshi += freqhi + (poslo>>24);
             poslo &= 0xffffff;
             poshi &= synth.oscilsize - 1;
+            
+            
         }
         // printf("minmax: %f %f\n", minpar, maxpar);
 
         oscposhi[nvoice][k] = poshi;
         oscposlo[nvoice][k] = poslo/(1.0f*(1<<24));
+        
+        // post-processing
+        // Do the waveshaping
+        waveShapeSmps(synth.buffersize, tw, \
+                    pars.VoicePar[nvoice].OscilSmp->Pwaveshapingfunction, \
+                    pars.VoicePar[nvoice].OscilSmp->Pwaveshaping);
     }
 }
 
