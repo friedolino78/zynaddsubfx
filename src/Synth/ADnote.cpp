@@ -32,6 +32,8 @@
 #include "ADnote.h"
 #include "wavenormals.h"
 
+#define LENGTHOF(x) ((int)(sizeof(x)/sizeof(x[0])))
+
 namespace zyn {
 
 ADnote::ADnote(ADnoteParameters *pars_, SynthParams &spars,
@@ -1591,6 +1593,35 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyModulation(int nvoice,
  */
 inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
 {
+    
+        // windowed sinc kernel factor Fs*0.3, rejection 80dB
+    const float_t kernel[19] = {
+        0.0010596256917418426f,
+        0.004273442181254887f,
+        0.0035466063043375785f,
+        -0.014555483937137638f,
+        -0.04789321342588484f,
+        -0.050800020978553066f,
+        0.04679847159974432f,
+        0.2610646708018185f,
+        0.4964802251145513f,
+        0.6000513532962539f,
+        0.4964802251145513f,
+        0.2610646708018185f,
+        0.04679847159974432f,
+        -0.050800020978553066f,
+        -0.04789321342588484f,
+        -0.014555483937137638f,
+        0.0035466063043375785f,
+        0.004273442181254887f,
+        0.0010596256917418426f
+        };
+    
+    
+    
+    
+    
+    
     int i;
     // sine wave has no modulation parameters
     if(!NoteVoicePar[nvoice].basefunc) {
@@ -1604,7 +1635,7 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
         for(int k = 0; k < unison_size[nvoice]; ++k) {
             float *tw = tmpwave_unison[k];
             memcpy(tw, NoteVoicePar[NoteVoicePar[nvoice].FMVoice].VoiceOut,
-        	   synth.bufferbytes);
+                synth.bufferbytes);
         }
     else
         //Compute the modulator and store it in tmpwave_unison[][]
@@ -1655,6 +1686,12 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
         int    poslo  = oscposlo[nvoice][k] * (1<<24);
         int    freqhi = oscfreqhi[nvoice][k];
         int    freqlo = oscfreqlo[nvoice][k] * (1<<24);
+        
+        int    ovsmpfreqhi = freqhi / 19;
+        int    ovsmpfreqlo = freqlo / 19;
+
+        int    ovsmpposlo = 0;
+        int    ovsmpposhi = 0;
 
         base_func func = NoteVoicePar[nvoice].basefunc;
         assert(func);
@@ -1666,9 +1703,7 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
         // float minpar = 1.0f, maxpar = 0.0f;
 
         for(int i = 0; i < synth.buffersize; ++i) {
-
-            float oscil_pos = ((float)poshi + (float)poslo/(1.0f*(1<<24))) * oscilsize_inv;
-
+            
             // tw[i] is the original modulator
             // FMSmpMax makes sure tw[i] is in range [-1,1]
             // Also, FMSmpMax normalizes this, so the oscillating range is
@@ -1685,9 +1720,28 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
 //          minpar = std::min(minpar, par);
 //          maxpar = std::max(maxpar, par);
             //float rms = getWavenormals()[Pcurbasefunc-1][(std::size_t)(par*511.0f)];
+            ovsmpposlo  = poslo - (LENGTHOF(kernel)-1)/2 * ovsmpfreqlo; // go to first kernel sample
+            int uflow = ovsmpposlo>>24; // calculate the underflow
+            ovsmpposhi  = poshi - (LENGTHOF(kernel)-1)/2 * ovsmpfreqhi - ((0x00 - uflow) & 0xff);
+            ovsmpposlo &= 0xffffff;
+            ovsmpposhi &= synth.oscilsize - 1;
+            float out = 0;
+            for (int l = 0; l<LENGTHOF(kernel); l++) {
+                float oscil_pos = ((float)ovsmpposhi + ((float)ovsmpposlo/(1.0f*(1<<24)))) * oscilsize_inv;
+                out += kernel[l] * func(oscil_pos, par);
+                //~ printf("l: %d    oscil_pos: %f\n",l , oscil_pos);
+                ovsmpposlo += ovsmpfreqlo; // advance to next kernel sample
+                ovsmpposhi += ovsmpfreqhi + (ovsmpposlo>>24); // add the 24-bit overflow from lo to hi
+                ovsmpposlo &= 0xffffff; // remove the 24-bit overflow from lo
+                ovsmpposhi &= synth.oscilsize - 1; // remove the 24-bit overflow from hi
 
-            tw[i]  = func(oscil_pos, par);
-            //~ printf("oscil_pos: %f\n", oscil_pos);
+            }
+            tw[i] = out;
+
+            // advance to next sample
+
+            
+            //~ printf("out: %f\n", out);
             //tw[i] /= rms;
             poslo += freqlo;
             poshi += freqhi + (poslo>>24);
