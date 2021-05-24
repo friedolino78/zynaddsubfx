@@ -1666,7 +1666,7 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
 
         for(int i = 0; i < synth.buffersize; ++i) {
 
-            float oscil_pos = (float)poshi * oscilsize_inv;
+            float oscil_pos = ((float)poshi + (float)poslo/(1.0f*(1<<24))) * oscilsize_inv;
 
             // tw[i] is the original modulator
             // FMSmpMax makes sure tw[i] is in range [-1,1]
@@ -1686,9 +1686,8 @@ inline void ADnote::ComputeVoiceOscillatorWaveTableModulation(int nvoice)
             float rms = getWavenormals()[Pcurbasefunc-1]
                             [(std::size_t)(par*511.0f)];
 
-            tw[i]  = (func(oscil_pos, par) * ((1<<24) - poslo) +
-                      func(oscil_pos + oscilsize_inv, par) * poslo)
-                     / (1.0f*(1<<24));
+            tw[i]  = func(oscil_pos, par);
+            //~ printf("oscil_pos: %f\n", oscil_pos);
             tw[i] /= rms;
             poslo += freqlo;
             poshi += freqhi + (poslo>>24);
