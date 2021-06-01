@@ -52,6 +52,7 @@ Envelope::Envelope(EnvelopeParams &pars, float basefreq, float bufferdt,
         switch(mode) {
             case 2:
                 envval[i] = (1.0f - pars.Penvval[i] / 127.0f) * -40;
+                envcpval[i] = 10.0f * pars.envcpval[i];
                 break;
             case 3:
                 envval[i] =
@@ -60,15 +61,20 @@ Envelope::Envelope(EnvelopeParams &pars, float basefreq, float bufferdt,
                                  - 64.0f) / 64.0f) - 1.0f) * 100.0f;
                 if(pars.Penvval[i] < 64)
                     envval[i] = -envval[i];
+                envcpval[i] = 1000.0f * pars.envcpval[i];
                 break;
             case 4:
                 envval[i] = (pars.Penvval[i] - 64.0f) / 64.0f * 6.0f; //6 octaves (filtru)
+                envcpval[i] = 3.0f * pars.envcpval[i];
                 break;
             case 5:
                 envval[i] = (pars.Penvval[i] - 64.0f) / 64.0f * 10;
+                envcpval[i] = 100.0f * pars.envcpval[i];
                 break;
             default:
                 envval[i] = pars.Penvval[i] / 127.0f;
+                envcpval[i] = 5.0f * pars.envcpval[i];
+                break;
         }
     }
 
@@ -77,6 +83,7 @@ Envelope::Envelope(EnvelopeParams &pars, float basefreq, float bufferdt,
     currentpoint = 1; //the envelope starts from 1
     keyreleased  = false;
     t = 0.0f;
+    tRelease = 0.0f;
     envfinish = false;
     inct      = envdt[1];
     envoutval = 0.0f;
@@ -94,8 +101,11 @@ void Envelope::releasekey()
     if(keyreleased)
         return;
     keyreleased = true;
-    if(forcedrelease)
+    if(forcedrelease) {
+        tRelease = t;
         t = 0.0f;
+
+    }
 }
 
 void Envelope::forceFinish(void)
@@ -134,12 +144,31 @@ void Envelope::watch(float time, float value)
     }
 }
 
+inline float lerp(float a, float b, float t)
+{
+    return a + (b-a)*t;
+}
+
+inline float bezier(float a, float bRel, float c, float w2)
+{
+    // square bezier direct form p = (1-t)^2 *P0 + 2*(1-t)*t*P1 + t*t*P2
+    // formula in zest visualization:
+    // y[i]+y[i-1])/2 + ((y[i]-y[i-1]).abs+0.1)*4*c[i]  // b
+    //    vg.line_to(bb.x+bb.w*dat[i-2].x + bb.w*(dat[i].x-dat[i-2].x)*w2, // x
+    //               bb.y + bb.h/2 * (1-(w1*w1*a + w1*w2*b + w2*w2*c)))    // y
+    float w1 = 1.0f - w2;
+    float b = (a+c)/2.0f + 4.0f*bRel;
+
+    return w1*w1*a + 2*w1*w2*b + w2*w2*c;
+}
+
 /*
  * Envelope Output
  */
 float Envelope::envout(bool doWatch)
 {
     float out;
+
     if(envfinish) { //if the envelope is finished
         envoutval = envval[envpoints - 1];
         if(doWatch) {
@@ -188,11 +217,12 @@ float Envelope::envout(bool doWatch)
 
         return out;
     }
-    if(inct >= 1.0f)
+
+    if(inct >= 1.0f) // if we reached the next point
         out = envval[currentpoint];
-    else
-        out = envval[currentpoint - 1]
-              + (envval[currentpoint] - envval[currentpoint - 1]) * t;
+    else { // if we have to interpolate between points
+        out = bezier(envval[currentpoint - 1], envcpval[currentpoint], envval[currentpoint], t);
+    }
 
     t += inct;
 
@@ -211,12 +241,13 @@ float Envelope::envout(bool doWatch)
 
         t    = 0.0f;
         inct = envdt[currentpoint];
+        //~ printf("envdt[%d]: %f\n", currentpoint, envdt[currentpoint]);
     }
 
     envoutval = out;
 
     if(doWatch) {
-        watch(currentpoint + t, envoutval);
+        watch(currentpoint + t + tRelease, envoutval);
     }
     return out;
 }
@@ -248,6 +279,7 @@ float Envelope::envout_dB()
             envoutval = EnvelopeParams::env_rap2dB(out);
         else
             envoutval = MIN_ENVELOPE_DB;
+
         out = envoutval;
     } else
         out = envout(false);
