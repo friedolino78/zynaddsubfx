@@ -1513,11 +1513,12 @@ void save_cb(const char *msg, RtData &d)
 void gcc_10_1_0_is_dumb(const std::vector<std::string> &files,
         const int N,
         char *types,
-        rtosc_arg_t *args)
+        rtosc_arg_t *args,
+        const int offset = 0)
 {
         types[N] = 0;
         for(int i=0; i<N; ++i) {
-            args[i].s = files[i].c_str();
+            args[i].s = files[i+offset].c_str();
             types[i]  = 's';
         }
 }
@@ -1711,6 +1712,23 @@ static rtosc::Ports middwareSnoopPortsWithoutNonRtParams = {
         rtosc_arg_t *args  = new rtosc_arg_t[N];
         char        *types = new char[N+1];
         gcc_10_1_0_is_dumb(files, N, types, args);
+
+        d.replyArray(d.loc, types, args);
+        delete [] types;
+        delete [] args;
+        rEnd},
+    {"file_list_files:sii", 0, 0,
+        rBegin;
+        const char *folder = rtosc_argument(msg, 0).s;
+
+        auto files = getFiles(folder, false);
+
+        const int Nmax = files.size();
+        const int offset = rtosc_argument(msg, 1).i;
+        const int N = limit(rtosc_argument(msg, 2).i,1,Nmax-offset);
+        rtosc_arg_t *args  = new rtosc_arg_t[N];
+        char        *types = new char[N+1];
+        gcc_10_1_0_is_dumb(files, N, types, args, offset);
 
         d.replyArray(d.loc, types, args);
         delete [] types;
