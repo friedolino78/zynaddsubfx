@@ -70,7 +70,7 @@ void AnalogFilter::cleanup()
 AnalogFilter::Coeff AnalogFilter::computeCoeff(int type, float cutoff, float q,
         int stages, float gain, float fs, int &order)
 {
-    AnalogFilter::Coeff coeff;
+    AnalogFilter::Coeff coeff = {};
     bool  zerocoefs = false; //this is used if the freq is too high
 
     const float samplerate_f = fs;
