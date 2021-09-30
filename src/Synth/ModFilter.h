@@ -56,11 +56,11 @@ class ModFilter
         Allocator          &alloc; //RT Memory Pool
 
 
-        smooth_float baseQ;    //filter sharpness
-        smooth_float baseFreq; //base filter frequency
-        float noteFreq; //frequency note was initialized to
-        smooth_float tracking; //shift due to note frequency
-        smooth_float sense;    //shift due to note velocity
+        smooth_float baseQ={};    //filter sharpness
+        smooth_float baseFreq={}; //base filter frequency
+        float noteFreq=440.0f; //frequency note was initialized to
+        smooth_float tracking={}; //shift due to note frequency
+        smooth_float sense={};    //shift due to note velocity
 
 
         Filter       *left; //left  channel filter

@@ -60,7 +60,7 @@ class SEQ
         const float     dt;
         const SEQParams &seqpars;
 
-        float seqintensity;
+        float seqintensity=0.0f;
 
         float FcAbs, K, norm;
 

@@ -75,14 +75,14 @@ float SEQ::biquad(float input)
     if (seqpars.cutoff!=cutoff ) // calculate coeffs only if cutoff changed
     {
         cutoff = seqpars.cutoff;
-        if (cutoff!= MAX_CUTOFF) // at cutoff 0.0f we bypass filter, no coeffs needed
+        if (cutoff!= MAX_CUTOFF) // at maximum cutoff we bypass filter, no coeffs needed
         {
             // calculate biquad coefficients
-            FcAbs = limit(cutoff, 1.0f, 40.0f);
-            K = tan(PI * limit(FcAbs * dt,0.001f,0.4f)); // FcRel * dt max 40 * 0.01 = 0.4,
-            // LIMIT in case of SEQ sampling frequency lower than 100 Hz
+            const float FcAbs = (cutoff + 7.0f)*(cutoff + 7.0f)/ 450.56f; // max value < 40
+            const float K = tan(PI * limit(FcAbs * dt,0.001f,0.4f)); // FcRel * dt_ max 40 * 0.01 = 0.4,
+            // LIMIT in case of LFO sampling frequency lower than 100 Hz
 
-            norm = 1.0f / (1.0f + K / 0.7071f + K * K);
+            const float norm = 1.0f / (1.0f + K / 0.7071f + K * K);
             a0 = K * K * norm;
             a1 = 2.0f * a0;
             a2 = a0;
@@ -90,28 +90,25 @@ float SEQ::biquad(float input)
             b2 = (1.0f - K / 0.7071f + K * K) * norm;
         }
     }
-    if (cutoff != MAX_CUTOFF) // at cutoff 127 we bypass filter, nothing to do
+    if (cutoff != MAX_CUTOFF) // at maximum cutoff we bypass filter, nothing to do
     {
         output = limit(input * a0 + z1, -1.0f, 1.0f);
         z1 = input * a1 + z2 - b1 * output;
         z2 = input * a2 - b2 * output;
     }
-    return (cutoff==MAX_CUTOFF) ? input : output; // at cutoff 127 bypass filter
+    return (cutoff==MAX_CUTOFF) ? input : output; // at maximum cutoff bypass filter
 }
 
 
 float SEQ::seqout()
 {
-    //update internals XXX TODO cleanup
     if ( ! seqpars.time || seqpars.last_update_timestamp == seqpars.time->time())
     {
         if((seqpars.numerator==0)) { 
             if (seqpars.freq < 0.001) {
-                //~ printf("z109 seqpars.freq = %f\n", seqpars.freq);
                 duration = 1000.0f;
             }  
             duration = 1.0/seqpars.freq;  
-            //~ printf("z113 seqpars.freq = %f\n", seqpars.freq);
         } else {
             duration = 240.0f / limit(((float(time.tempo)) * seqpars.denominator / seqpars.numerator), 0.001f, 10000.0f);
         }

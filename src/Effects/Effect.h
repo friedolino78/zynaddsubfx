@@ -152,18 +152,18 @@ class Effect
         virtual void cleanup(void) {}
         virtual float getfreqresponse(float freq) { return freq; }
 
-        unsigned char Ppreset;   /**<Currently used preset*/
-        float *const  efxoutl; /**<Effect out Left Channel*/
-        float *const  efxoutr; /**<Effect out Right Channel*/
-        float outvolume; /**<This is the volume of effect and is public because
+        unsigned char Ppreset=0;   /**<Currently used preset*/
+        float *const  efxoutl={}; /**<Effect out Left Channel*/
+        float *const  efxoutr={}; /**<Effect out Right Channel*/
+        float outvolume=0.0f; /**<This is the volume of effect and is public because
                           * it is needed in system effects.
                           * The out volume of such effects are always 1.0f, so
                           * this setting tells me how is the volume to the
                           * Master Output only.*/
 
-        float volume;
+        float volume=0.0f;
 
-        FilterParams *filterpars; /**<Parameters for filters used by Effect*/
+        FilterParams *filterpars={}; /**<Parameters for filters used by Effect*/
 
         //Perform L/R crossover
         static void crossover(float &a, float &b, float crossover);
@@ -172,26 +172,26 @@ class Effect
         void setpanning(char Ppanning_);
         void setlrcross(char Plrcross_);
 
-        const bool insertion;
+        const bool insertion=false;
         //panning parameters
-        char  Ppanning;
-        float pangainL;
-        float pangainR;
-        char  Plrcross; // L/R mix
-        float lrcross;
+        char  Ppanning=0;
+        float pangainL=0.0f;
+        float pangainR=0.0f;
+        char  Plrcross=0; // L/R mix
+        float lrcross=0.0f;
 
         //Allocator
         Allocator &memory;
 
         // current setup
-        unsigned int samplerate;
-        int buffersize;
+        unsigned int samplerate=0;
+        int buffersize=0;
 
         // alias for above terms
-        float samplerate_f;
-        float halfsamplerate_f;
-        float buffersize_f;
-        int   bufferbytes;
+        float samplerate_f=0.0f;
+        float halfsamplerate_f=0.0f;
+        float buffersize_f=0.0f;
+        int   bufferbytes=0;
 
         inline void alias()
         {

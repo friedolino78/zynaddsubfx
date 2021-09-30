@@ -147,16 +147,16 @@ float LFO::biquad(float input)
         if (cutoff != 127) // at cutoff 127 we bypass filter, no coeffs needed
         {
             // calculate biquad coefficients
-            FcAbs = (cutoff + 7.0f)*(cutoff + 7.0f)/ 450.56f; // max value < 40
-            K = tan(PI * limit(FcAbs * dt,0.001f,0.4f)); // FcRel * dt_ max 40 * 0.01 = 0.4,
+            const float FcAbs = (cutoff + 7.0f)*(cutoff + 7.0f)/ 450.56f; // max value < 40
+            const float K = tan(PI * limit(FcAbs * dt,0.001f,0.4f)); // FcRel * dt_ max 40 * 0.01 = 0.4,
             // LIMIT in case of LFO sampling frequency lower than 100 Hz
 
-            norm = 1 / (1 + K / 0.7071f + K * K);
+            const float norm = 1.0f / (1.0f + K / 0.7071f + K * K);
             a0 = K * K * norm;
-            a1 = 2 * a0;
+            a1 = 2.0f * a0;
             a2 = a0;
-            b1 = 2 * (K * K - 1) * norm;
-            b2 = (1 - K / 0.7071f + K * K) * norm;
+            b1 = 2.0f * (K * K - 1.0f) * norm;
+            b2 = (1.0f - K / 0.7071f + K * K) * norm;
         }
     }
     if (cutoff != 127) // at cutoff 127 we bypass filter, nothing to do

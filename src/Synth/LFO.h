@@ -98,8 +98,6 @@ class LFO
         const LFOParams &lfopars;
         const float basefreq;
 
-        float FcAbs, K, norm;
-
         //biquad coefficients for lp filtering in noise-LFO
         float a0 = 0.0007508914611009499;
         float a1 = 0.0015017829222018998;
