@@ -18,7 +18,7 @@
 #include <rtosc/ports.h>
 #include "Presets.h"
 
-#define MAX_CUTOFF 20.0f
+#define MAX_CUTOFF 40.0f
 
 namespace zyn {
 
@@ -50,8 +50,8 @@ class SEQParams:public Presets
         float cutoff=0.0f; /**<cutoff frequency of LP filter (0.0f=off) */
         float delay=0.0f; /**<delay (0=off)*/
         float intensity=0.0f;
-        unsigned char continous=0; 
-        unsigned char steps=8; 
+        unsigned char continous=0;
+        unsigned char steps=8;
         int           numerator=0;  /**<numerator for integer ratio between system tempo and LFO freq (0=off)*/
         int           denominator=4;/**<denominator for integer ratio between system tempo and LFO freq (0=off)*/
         float         sequence[NUM_SEQ_STEPS]={};
