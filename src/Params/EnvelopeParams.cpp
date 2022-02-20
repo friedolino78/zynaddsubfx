@@ -108,9 +108,9 @@ static const rtosc::Ports localPorts = {
                               sub_filter),
             rDefault(64),
             "Stretch with respect to frequency"),
-    rParamF(vStretch, rShort("v.str"), rDefault(0.0f), rLinear(0.0f,1.0f), 
+    rParamF(vStretch, rShort("v.str"), rDefault(0.0f), rLinear(0.0f,1.0f),
             "Stretch with respect to velocity"),
-    rParamF(vStretchFunction, rShort("v.sense"), rDefault(64.0f), rLinear(0.0f,127.0f), 
+    rParamF(vStretchFunction, rShort("v.sense"), rDefault(64.0f), rLinear(0.0f,127.0f),
         "Velocity Stretch Function Shape"),
     rToggle(Pforcedrelease, rShort("frcr"), rDefaultDepends(loc),
             rPresetAtMulti(true, ad_global_amp, ad_global_filter, ad_voice_amp,
@@ -405,11 +405,11 @@ void EnvelopeParams::init(zyn::consumer_location_t _loc)
         case ad_global_filter:
         case sub_filter:       ADSRinit_filter(64, 0.127f, 64, 0.970f, 0.499f, 64); break;
         case ad_voice_amp:     ADSRinit_dB(0.0001f, 6.978f, 127, 6.978f); break;
-        case ad_voice_freq:    ASRinit(30, 0.127f, 64, 0.499f); break;
+        case ad_voice_freq:    ASRinit(64, 0.127f, 64, 0.499f); break;
         case ad_voice_filter:  ADSRinit_filter(90, 0.970f, 40, 0.970f, 0.009f, 40); break;
-        case ad_voice_fm_freq: ASRinit(20, 3.620f, 40, 1.876f); break;
+        case ad_voice_fm_freq: ASRinit(64, 3.620f, 64, 1.876f); break;
         case ad_voice_fm_amp:  ADSRinit(1.876f, 3.620f, 127, 6.978f); break;
-        case sub_freq:         ASRinit(30, 0.254f, 64, 0.499f); break;
+        case sub_freq:         ASRinit(64, 0.254f, 64, 0.499f); break;
         case sub_bandwidth:    ASRinit_bw(100, 0.970f, 64, 0.499f); break;
         default: throw std::logic_error("Invalid envelope consumer location");
     };
