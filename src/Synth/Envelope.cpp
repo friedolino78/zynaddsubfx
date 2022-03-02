@@ -144,11 +144,6 @@ void Envelope::watch(float time, float value)
     }
 }
 
-inline float lerp(float a, float b, float t)
-{
-    return a + (b-a)*t;
-}
-
 inline float bezier(float a, float bRel, float c, float w2)
 {
     // square bezier direct form p = (1-t)^2 *P0 + 2*(1-t)*t*P1 + t*t*P2

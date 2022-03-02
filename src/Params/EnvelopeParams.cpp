@@ -298,8 +298,8 @@ static const rtosc::Ports localPorts = {
         const int curpoint = rtosc_argument(msg, 0).i;
         if (curpoint<0 || curpoint>env->Penvpoints || env->Penvpoints>=MAX_ENVELOPE_POINTS)
             return;
-        int i;
-        for (i=env->Penvpoints; i>=curpoint+1; i--) {
+
+        for (int i=env->Penvpoints; i>=curpoint+1; i--) {
             env->envdt[i]=env->envdt[i-1];
             env->Penvval[i]=env->Penvval[i-1];
         }
@@ -338,9 +338,9 @@ EnvelopeParams::EnvelopeParams(unsigned char Penvstretch_,
                                const AbsTime *time_):
         time(time_), last_update_timestamp(0)
 {
-    A_dt  = 0.0001f;
+    A_dt  = 0.009;
     D_dt  = 0.009;
-    R_dt  = 0.499f;
+    R_dt  = 0.009;
     PA_val = 64;
     PD_val = 64;
     PS_val = 64;
@@ -626,7 +626,9 @@ void EnvelopeParams::getfromXML(XMLwrapper& xml)
         A_dt = dTREAL(xml.getpar127("A_dt", 0));
         if (A_dt == 0.0f) A_dt= 0.0001f;
         D_dt = dTREAL(xml.getpar127("D_dt", 0));
+        if (D_dt == 0.0f) D_dt= 0.0001f;
         R_dt = dTREAL(xml.getpar127("R_dt", 0));
+        if (R_dt == 0.0f) R_dt= 0.0001f;
     } else {
         A_dt  = xml.getparreal("A_dt", A_dt);
         D_dt  = xml.getparreal("D_dt", D_dt);
