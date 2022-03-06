@@ -52,7 +52,8 @@ Envelope::Envelope(EnvelopeParams &pars, float basefreq, float bufferdt,
         switch(mode) {
             case 2:
                 envval[i] = (1.0f - pars.Penvval[i] / 127.0f) * -40;
-                envcpval[i] = 10.0f * pars.envcpval[i];
+                //~ envcpx[i] = 10.0f * pars.envcpx[i];
+                envcpy[i] = 10.0f * pars.envcpy[i];
                 break;
             case 3:
                 envval[i] =
@@ -61,19 +62,23 @@ Envelope::Envelope(EnvelopeParams &pars, float basefreq, float bufferdt,
                                  - 64.0f) / 64.0f) - 1.0f) * 100.0f;
                 if(pars.Penvval[i] < 64)
                     envval[i] = -envval[i];
-                envcpval[i] = 1000.0f * pars.envcpval[i];
+                //~ envcpx[i] = 1000.0f * pars.envcpx[i];
+                envcpy[i] = 1000.0f * pars.envcpy[i];
                 break;
             case 4:
                 envval[i] = (pars.Penvval[i] - 64.0f) / 64.0f * 6.0f; //6 octaves (filtru)
-                envcpval[i] = 3.0f * pars.envcpval[i];
+                //~ envcpx[i] = 3.0f * pars.envcpx[i];
+                envcpy[i] = 3.0f * pars.envcpy[i];
                 break;
             case 5:
                 envval[i] = (pars.Penvval[i] - 64.0f) / 64.0f * 10;
-                envcpval[i] = 100.0f * pars.envcpval[i];
+                //~ envcpx[i] = 100.0f * pars.envcpx[i];
+                envcpy[i] = 100.0f * pars.envcpy[i];
                 break;
             default:
                 envval[i] = pars.Penvval[i] / 127.0f;
-                envcpval[i] = 5.0f * pars.envcpval[i];
+                //~ envcpx[i] = 5.0f * pars.envcpx[i];
+                envcpy[i] = 5.0f * pars.envcpy[i];
                 break;
         }
     }
@@ -144,17 +149,32 @@ void Envelope::watch(float time, float value)
     }
 }
 
-inline float bezier(float a, float bRel, float c, float w2)
-{
-    // square bezier direct form p = (1-t)^2 *P0 + 2*(1-t)*t*P1 + t*t*P2
-    // formula in zest visualization:
-    // y[i]+y[i-1])/2 + ((y[i]-y[i-1]).abs+0.1)*4*c[i]  // b
-    //    vg.line_to(bb.x+bb.w*dat[i-2].x + bb.w*(dat[i].x-dat[i-2].x)*w2, // x
-    //               bb.y + bb.h/2 * (1-(w1*w1*a + w1*w2*b + w2*w2*c)))    // y
-    float w1 = 1.0f - w2;
-    float b = (a+c)/2.0f + 4.0f*bRel;
+//~ inline float bezier2(float a, float bRel, float c, float w2)
+//~ {
+    //~ // square bezier direct form p = (1-t)^2 *P0 + 2*(1-t)*t*P1 + t*t*P2
+    //~ // formula in zest visualization:
+    //~ // y[i]+y[i-1])/2 + ((y[i]-y[i-1]).abs+0.1)*4*c[i]  // b
+    //~ //    vg.line_to(bb.x+bb.w*dat[i-2].x + bb.w*(dat[i].x-dat[i-2].x)*w2, // x
+    //~ //               bb.y + bb.h/2 * (1-(w1*w1*a + w1*w2*b + w2*w2*c)))    // y
+    //~ float w1 = 1.0f - w2;
+    //~ float b = (a+c)/2.0f + 4.0f*bRel;
 
-    return w1*w1*a + 2*w1*w2*b + w2*w2*c;
+    //~ return w1*w1*a + 2*w1*w2*b + w2*w2*c;
+//~ }
+
+inline float bezier3(float a, float bRel, float cRel, float d, float t)
+{
+    float t2 = t*t;
+    float t3 = t2*t;
+
+    float mt = 1.0f-t;
+    float mt2 = mt*mt;
+    float mt3 = mt2*mt;
+
+    float b = (3.0f*a+d)/4.0f + 4.0f*bRel;
+    float c = (a+3.0f*d)/4.0f + 4.0f*cRel;
+
+    return mt3*a + 3.0f*mt2*t*b + 3.0f*mt*t2*c + t3*d;
 }
 
 /*
@@ -193,7 +213,8 @@ float Envelope::envout(bool doWatch)
         if(envdt[releaseindex] < 0.00000001f)
             out = envval[releaseindex];
         else
-            out = envoutval + (envval[releaseindex] - envoutval) * t; // linear interpolation envoutval and envval[releaseindex]
+            //~ out = envoutval + (envval[releaseindex] - envoutval) * t; // linear interpolation envoutval and envval[releaseindex]
+            out = bezier3(envoutval, envcpy[releaseindex*2-1], envcpy[releaseindex*2], envval[releaseindex], t);
 
         t += envdt[releaseindex];
 
@@ -213,10 +234,11 @@ float Envelope::envout(bool doWatch)
         return out;
     }
 
-    if(inct >= 1.0f) // if we reached the next point
+    if(t >= 1.0f) // if we reached the next point
         out = envval[currentpoint];
     else { // if we have to interpolate between points
-        out = bezier(envval[currentpoint - 1], envcpval[currentpoint], envval[currentpoint], t);
+        //~ out = bezier2(envval[currentpoint - 1], envcp[currentpoint], envval[currentpoint], t);
+        out = bezier3(envval[currentpoint - 1], envcpy[currentpoint*2-1], envcpy[currentpoint*2], envval[currentpoint], t);
     }
 
     t += inct;

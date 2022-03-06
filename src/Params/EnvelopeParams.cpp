@@ -256,21 +256,42 @@ static const rtosc::Ports localPorts = {
             }
         }
         rEnd},
-    {"envcpval", rShort("bezier") rDoc("Envelope Control Points"), NULL,
+    //~ {"envcpx", rShort("bezier x") rDoc("Envelope Control Points"), NULL,
+        //~ rBegin;
+        //~ const int N = MAX_ENVELOPE_CPOINTS;
+        //~ const int M = rtosc_narguments(msg);
+        //~ if(M == 0) {
+            //~ rtosc_arg_t args[N];
+            //~ char arg_types[N+1] = {};
+            //~ for(int i=0; i<N; ++i) {
+                    //~ args[i].f    = env->envcpx[i];
+                    //~ arg_types[i] = 'f';
+                    //~ if(env->envcpx[i] != 0.0f) printf("env->envcpx[%d]: %f\n", i, env->envcpy[i]);
+            //~ }
+            //~ d.replyArray(d.loc, arg_types, args);
+        //~ } else {
+            //~ for(int i=0; i<N && i<M; ++i) {
+                //~ env->envcpx[i] = rtosc_argument(msg,i).f;
+            //~ }
+
+        //~ }
+        //~ rEnd},
+    {"envcpy", rShort("bezier y") rDoc("Envelope Control Points"), NULL,
         rBegin;
-        const int N = MAX_ENVELOPE_POINTS;
+        const int N = MAX_ENVELOPE_CPOINTS;
         const int M = rtosc_narguments(msg);
         if(M == 0) {
             rtosc_arg_t args[N];
             char arg_types[N+1] = {};
             for(int i=0; i<N; ++i) {
-                    args[i].f    = env->envcpval[i];
+                    args[i].f    = env->envcpy[i];
                     arg_types[i] = 'f';
+                    if(env->envcpy[i] != 0.0f) printf("env->envcpy[%d]: %f\n", i, env->envcpy[i]);
             }
             d.replyArray(d.loc, arg_types, args);
         } else {
             for(int i=0; i<N && i<M; ++i) {
-                env->envcpval[i] = rtosc_argument(msg,i).f;
+                env->envcpy[i] = rtosc_argument(msg,i).f;
             }
 
         }
@@ -302,6 +323,8 @@ static const rtosc::Ports localPorts = {
         for (int i=env->Penvpoints; i>=curpoint+1; i--) {
             env->envdt[i]=env->envdt[i-1];
             env->Penvval[i]=env->Penvval[i-1];
+            env->envcpy[i*2] = env->envcpy[(i-1)*2];
+            env->envcpy[i*2-1] = env->envcpy[(i-1)*2-1];
         }
 
         if (curpoint==0)
@@ -320,6 +343,8 @@ static const rtosc::Ports localPorts = {
         for (int i=curpoint+1;i<env->Penvpoints;i++){
             env->envdt[i-1]=env->envdt[i];
             env->Penvval[i-1]=env->Penvval[i];
+            env->envcpy[(i-1)*2] = env->envcpy[i*2];
+            env->envcpy[(i-1)*2-1] = env->envcpy[i*2-1];
         };
 
         env->Penvpoints--;
@@ -349,7 +374,10 @@ EnvelopeParams::EnvelopeParams(unsigned char Penvstretch_,
     for(int i = 0; i < MAX_ENVELOPE_POINTS; ++i) {
         envdt[i]  = dTREAL(32);
         Penvval[i] = 64;
-        envcpval[i] = 0.0f;
+        envcpx[i*2] = 0.0f;
+        envcpx[i*2+1] = 0.0f;
+        envcpy[i*2] = 0.0f;
+        envcpy[i*2+1] = 0.0f;
     }
     envdt[0]        = 0.0001f; //not used
     Penvsustain     = 1;
@@ -565,7 +593,8 @@ void EnvelopeParams::add2XML(XMLwrapper& xml)
             xml.beginbranch("POINT", i);
             if(i != 0) {
                 xml.addparreal("dt", envdt[i]);
-                xml.addparreal("envcpval", envcpval[i]);
+                xml.addparreal("envcpx", envcpx[i]);
+                xml.addparreal("envcpy", envcpy[i]);
             }
             xml.addpar("val", Penvval[i]);
 
@@ -651,7 +680,8 @@ void EnvelopeParams::getfromXML(XMLwrapper& xml)
             else {
                 envdt[i] = xml.getparreal("dt", envdt[i]);
             }
-            if(xml.hasparreal("envcpval")) envcpval[i] = xml.getparreal("envcpval", envcpval[i]);
+            if(xml.hasparreal("envcpx")) envcpx[i] = xml.getparreal("envcpx", envcpx[i]);
+            if(xml.hasparreal("envcpy")) envcpy[i] = xml.getparreal("envcpy", envcpy[i]);
         }
         Penvval[i] = version_fix(xml.getpar127("val", Penvval[i]));
         xml.exitbranch();

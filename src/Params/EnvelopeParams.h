@@ -55,7 +55,8 @@ class EnvelopeParams:public Presets
         unsigned char Penvpoints;
         unsigned char Penvsustain; //127 for disabled
         float         envdt[MAX_ENVELOPE_POINTS];
-        float         envcpval[MAX_ENVELOPE_POINTS];  // control value for segment curvature
+        float         envcpx[MAX_ENVELOPE_CPOINTS];  // x of bezier control points
+        float         envcpy[MAX_ENVELOPE_CPOINTS];  // y of bezier control points
         unsigned char Penvval[MAX_ENVELOPE_POINTS];
         unsigned char Penvstretch; //64=normal stretch (piano-like), 0=no stretch
         float vStretch;
