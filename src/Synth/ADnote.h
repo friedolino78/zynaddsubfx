@@ -99,13 +99,8 @@ class ADnote:public SynthNote
         inline void ComputeVoiceOscillatorMix(int nvoice);
         /**Computes the Ring Modulated Oscillator.*/
         inline void ComputeVoiceOscillatorRingModulation(int nvoice);
-        /**Computes the Frequency Modulated Oscillator.
-         * @param FMmode modulation type 0=Phase 1=Frequency*/
-        inline void ComputeVoiceOscillatorFrequencyModulation(int nvoice,
-                                                              FMTYPE FMmode);
-        //  inline void ComputeVoiceOscillatorFrequencyModulation(int nvoice);
-        /**Computes the WaveTable Modulated Oscillator.*/
-        inline void ComputeVoiceOscillatorWaveTableModulation(int nvoice, FMTYPE FMmode);
+        /**Computes the Frequency/Wave Modulated Oscillator*/
+        inline void ComputeVoiceOscillatorFrequencyOrWtModulation(int nvoice, FMTYPE FMmode);
         /**TODO*/
         inline void ComputeVoiceOscillatorPitchModulation(int nvoice);
 
