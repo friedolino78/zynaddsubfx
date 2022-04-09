@@ -1752,9 +1752,9 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyOrWtModulation(int nvoice, FM
     } // end of Compute the modulator
 
     // WaveTable-specific vars
-    float freq = getvoicebasefreq(nvoice);
-    const WaveTable* wt = NoteVoicePar[nvoice].OscilSmp.table;
-    tensor_size_t freqIndex = wt->findBestIndex(freq);
+    float freq;
+    const WaveTable* wt;
+    tensor_size_t freqIndex;
 
     if(FMmode == FMTYPE::WAVE_MOD)
     {
