@@ -1812,15 +1812,15 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyOrWtModulation(int nvoice, FM
                 // [0, 2*basefuncpar] or [1 - 2*basefuncpar, 1]
                 // The min()/max() calls are just for safety
                 float par = 0.0f;
-                if(!pars.VoicePar[nvoice].PWaveEnvelopeEnabled)
-                    par = std::max(0.0f, std::min(1.0f,
-                        (tw[i]/NoteVoicePar[nvoice].FMSmpMax) +
-                        NoteVoicePar[nvoice].basefuncpar));
-                else
+                if(pars.VoicePar[nvoice].PWaveEnvelopeEnabled)
                     par = std::max(0.0f, std::min(1.0f,
                         (INTERPOLATE_AMPLITUDE(vce.WAVEoldPar,
                          vce.WAVEnewPar, i, synth.buffersize)) +
                          NoteVoicePar[nvoice].basefuncpar));
+                else
+                    par = std::max(0.0f, std::min(1.0f,
+                        (tw[i]/NoteVoicePar[nvoice].FMSmpMax) +
+                        NoteVoicePar[nvoice].basefuncpar));
                 // 127 * 4 + 1 waves = 509 waves (3 waves above are padding)
                 // => use 508 to access the C array (C array syntax)
                 float semantic = par * 508.f;
