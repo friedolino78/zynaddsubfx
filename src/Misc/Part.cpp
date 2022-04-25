@@ -179,20 +179,24 @@ static const Ports partPorts = {
         [](const char *, RtData &d)
         {
             Part *p = (Part*)d.obj;
+            int err;
             if (p->loaded_file[0] == '\0') {  // if part was never loaded or saved
                 time_t rawtime;     // make a new name from date and time
                 char filename[32];
                 time (&rawtime);
                 const struct tm* timeinfo = localtime (&rawtime);
                 strftime (filename,23,"%F_%R.xiz",timeinfo);
-                p->saveXML(filename);
-                fprintf(stderr, "Part %d saved to %s\n", (p->partno + 1), filename);
+                err = p->saveXML(filename);
+                fprintf(stderr, "Part %d saved to %s: %s\n", (p->partno + 1), filename, err ? "failed" : "ok");
             }
             else
             {
-                p->saveXML(p->loaded_file);
-                fprintf(stderr, "Part %d saved to %s\n", (p->partno + 1), p->loaded_file);
+                err = p->saveXML(p->loaded_file);
+                fprintf(stderr, "Part %d saved to %s: %s\n", (p->partno + 1), p->loaded_file, err ? "failed" : "ok");
             }
+            if (err)
+                d.reply("/alert", "s",
+                        "Failed To Save File, please check file permissions");
         }},
     //{"kit#16::T:F", "::Enables or disables kit item", 0,
     //    [](const char *m, RtData &d) {
@@ -551,62 +555,59 @@ bool Part::NoteOnInternal(note_t note,
     // still held down or sustained for the Portamento to activate
     // (that's like Legato).
     PortamentoRealtime *portamento_realtime = NULL;
-    if(Ppolymode || isRunningNote) {
-        // If there is a currently ongoing glide, shift the starting point
-        // for any new portamento to where the current glide is right now
-        if (oldportamento && oldportamento->portamento.active)
-            oldportamentofreq_log2 += oldportamento->portamento.freqdelta_log2;
-        // Non-portamento settings and conditions say the note may have
-        // portamento, but it remains for Portamento.init to make the
-        // final decision depending on the portamento enable, threshold and
-        // other parameters.
-        Portamento portamento(ctl, synth, oldfreq_log2, oldportamentofreq_log2, note_log2_freq);
-        if(portamento.active) {
-            // We're good to go! Just need to figure out how.
-            // If we're doing legato and we already have a portamento structure,
-            // reuse it.
-            if (doingLegato && legatoportamento) {
-                portamento_realtime = legatoportamento;
-                portamento_realtime->portamento = portamento;
-            } else {
-                // Create new one if we don't already have one, or for each
-                // note in poly/mono mode
-                portamento_realtime = memory.alloc<PortamentoRealtime>
-                    (this,
-                     memory,
-                     // Cleanup function: Destroy any references we might
-                     // have to the current realtime pointer so that it
-                     // can not be (re)used, with disastrous results.
-                     [](PortamentoRealtime *realtime)
-                        {
-                            assert(realtime);
-                            Part *part = static_cast<Part *>(realtime->handle);
-                            assert(part);
-                            if (realtime == part->oldportamento) {
-                                // Since the last note is going away, capture
-                                // the portamento:ed pitch offset to our saved
-                                // previous note. This will be our starting
-                                // point for the next portamento glide.
-                                if (realtime->portamento.active)
-                                    part->oldportamentofreq_log2 +=
-                                        realtime->portamento.freqdelta_log2;
-                                part->oldportamento = NULL;
-                            }
-                            if (realtime == part->legatoportamento)
-                                part->legatoportamento = NULL;
-                        },
-                     portamento
-                    );
-                if (doingLegato)
-                    legatoportamento = portamento_realtime;
-            }
+    // If there is a currently ongoing glide, shift the starting point
+    // for any new portamento to where the current glide is right now
+    if (oldportamento && oldportamento->portamento.active)
+        oldportamentofreq_log2 += oldportamento->portamento.freqdelta_log2;
+    // Non-portamento settings and conditions say the note may have
+    // portamento, but it remains for Portamento.init to make the
+    // final decision depending on the portamento enable, threshold and
+    // other parameters.
+    Portamento portamento(ctl, synth, isRunningNote, oldfreq_log2, oldportamentofreq_log2, note_log2_freq);
+    if(portamento.active) {
+        // If we're doing legato and we already have a portamento structure,
+        // reuse it.
+        if (doingLegato && legatoportamento) {
+            portamento_realtime = legatoportamento;
+            portamento_realtime->portamento = portamento;
+        } else {
+            // Create new one if we don't already have one, or for each
+            // note in poly/mono mode
+            portamento_realtime = memory.alloc<PortamentoRealtime>
+                (this,
+                 memory,
+                 // Cleanup function: Destroy any references we might
+                 // have to the current realtime pointer so that it
+                 // can not be (re)used, with disastrous results.
+                 [](PortamentoRealtime *realtime)
+                    {
+                        assert(realtime);
+                        Part *part = static_cast<Part *>(realtime->handle);
+                        assert(part);
+                        if (realtime == part->oldportamento) {
+                            // Since the last note is going away, capture
+                            // the portamento:ed pitch offset to our saved
+                            // previous note. This will be our starting
+                            // point for the next portamento glide.
+                            if (realtime->portamento.active)
+                                part->oldportamentofreq_log2 +=
+                                    realtime->portamento.freqdelta_log2;
+                            part->oldportamento = NULL;
+                        }
+                        if (realtime == part->legatoportamento)
+                            part->legatoportamento = NULL;
+                    },
+                 portamento
+                );
+            if (doingLegato)
+                legatoportamento = portamento_realtime;
         }
     }
 
     // Create the portamento pointer that we distribute to the synth notes
-    Portamento *portamento = NULL;
+    Portamento *portamentoptr = NULL;
     if(portamento_realtime)
-        portamento = &portamento_realtime->portamento;
+        portamentoptr = &portamento_realtime->portamento;
 
     // Save note freq and pointer to portamento state for next note
     oldfreq_log2 = note_log2_freq;
@@ -615,7 +616,7 @@ bool Part::NoteOnInternal(note_t note,
 
     //Adjust Existing Notes
     if(doingLegato) {
-        LegatoParams pars = {vel, portamento, note_log2_freq, true, prng()};
+        LegatoParams pars = {vel, portamentoptr, note_log2_freq, true, prng()};
         notePool.applyLegato(note, pars, portamento_realtime);
         return true;
     }
@@ -639,7 +640,7 @@ bool Part::NoteOnInternal(note_t note,
             continue;
 
         SynthParams pars{memory, ctl, synth, time, vel,
-            portamento, note_log2_freq, false, prng()};
+            portamentoptr, note_log2_freq, false, prng()};
         const int sendto = Pkitmode ? item.sendto() : 0;
 
         // Enforce voice limit, before we trigger new note
@@ -689,7 +690,7 @@ void Part::NoteOff(note_t note) //release the key
     for(auto &desc:notePool.activeDesc()) {
         if(desc.note != note || !desc.playing())
             continue;
-        // if latch is on we ignore noteoff, but set the state to lateched
+        // if latch is on we ignore noteoff, but set the state to latched
         if(Platchmode) {
             notePool.latch(desc);
         } else if(!ctl.sustain.sustain) { //the sustain pedal is not pushed
@@ -704,6 +705,33 @@ void Part::NoteOff(note_t note) //release the key
             else {
                 notePool.release(desc);
             }
+        }
+    }
+}
+
+/*
+ * This handles the MIDI All Notes Off message (the 'notes off' in 'all notes
+ * off' refers to note off events, not actually silencing all playing
+ * voices).
+ */
+void Part::ReleaseAllKeys(void)
+{
+    // Clear all notes from list.
+    monomemClear();
+
+    for(auto &desc:notePool.activeDesc()) {
+        if(!desc.playing())
+            continue;
+        // if latch is on we ignore noteoff, but set the state to latched
+        if(Platchmode) {
+            notePool.latch(desc);
+        } else if(!ctl.sustain.sustain) { //the sustain pedal is not pushed
+            notePool.release(desc);
+        } else {   //the sustain pedal is pushed
+            if(desc.canSustain())
+                desc.doSustain();
+            else
+                notePool.release(desc);
         }
     }
 }
@@ -876,22 +904,7 @@ void Part::ReleaseSustainedKeys()
         if(monomemBack() != lastnote) // Sustain controller manipulation would cause repeated same note respawn without this check.
             MonoMemRenote();  // To play most recent still held note.
 
-    for(auto &d:notePool.activeDesc())
-        if(d.sustained())
-            for(auto &s:notePool.activeNotes(d))
-                s.note->releasekey();
-}
-
-/*
- * Release all keys
- */
-
-void Part::ReleaseAllKeys()
-{
-    for(auto &d:notePool.activeDesc())
-        if(!d.released())
-            for(auto &s:notePool.activeNotes(d))
-                s.note->releasekey();
+    notePool.releaseSustainingNotes();
 }
 
 // Call NoteOn(...) with the most recent still held key as new note
@@ -1467,7 +1480,15 @@ void Part::getfromXML(XMLwrapper& xml)
     }
 
     if(xml.enterbranch("CONTROLLER")) {
+        const bool upgrade_3_0_7 = (xml.fileversion() < version_type(3,0,7));
+
         ctl.getfromXML(xml);
+        // Before version 3.0.7, mono and legato modes always had auto
+        // portamento (and poly mode never did, but in that case
+        // portamento.automode will default to off, so no need to do anything
+        // here).
+        if (upgrade_3_0_7 && !Ppolymode)
+            ctl.portamento.automode = 1;
         xml.exitbranch();
     }
 }
