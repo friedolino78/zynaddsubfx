@@ -1846,8 +1846,6 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyOrWtModulation(int nvoice, FM
                 tw[i] = (1.0f - semantic_fractional) * twA + semantic_fractional * twB;
 
                 //printf("%f %f [%d,%d]: %f %f -> %f\n",freq,semantic,(int)poshi,(int)poslo,twA,twB, tw[i]);
-
-                tw[i] *= 0.5f;
             }
             else // not wave mode, i.e. FM, PM, PWM
             {
