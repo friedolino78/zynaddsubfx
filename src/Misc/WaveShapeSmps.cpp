@@ -301,8 +301,9 @@ void waveShapeSmps(int n,
         // f(x) = tan(x)
             ws = 0.1f + (ws * 1.4f);
             // try to normalize the high output of tan(x) with x -> pi/2
-            tanWsInv = (1.0f/tan(ws));
-            // TBD: tuning the function to
+            const float wsComp = 0.02 + (0.25f*ws*ws);
+            tanWsInv = (1.0f/tan(wsComp));
+
             tanOffs = tan(offs)*tanWsInv;
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws; // multiply signal for drive
