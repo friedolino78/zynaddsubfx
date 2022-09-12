@@ -310,14 +310,14 @@ void waveShapeSmps(int n,
             ws = 0.1f + (ws * 1.3f);
             // try to normalize the high output of tan(x) with x -> pi/2
             wsComp = 0.02 + (0.25f*ws*ws);
-            tanWsInv = (1.0f/tan(wsComp))-0.4f;
+            tanWsInv = (0.1f/tan(wsComp))-0.04f;
 
             tanOffs = tan(offs)*tanWsInv;
             for(i = 0; i < n; ++i) {
                 smps[i] *= ws; // multiply signal for drive
                 smps[i] += offs; // add dc offset
-                if(fabsf(smps[i]) > 1.57f) // keep x ~< pi/2
-                    smps[i] = (smps[i] > 0 ? 1.57f : -1.57f);
+                if(fabsf(smps[i]) > 1.5f) // keep x ~< pi/2
+                    smps[i] = (smps[i] > 0 ? 1.5f : -1.5f);
 
                 smps[i] = tan(smps[i])*tanWsInv;
 
