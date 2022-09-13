@@ -82,9 +82,11 @@ void waveShapeSmps(int n,
     float par = funcpar / 127.0f;
     float offs = (offset - 64.0f) / 64.0f;
     float tmpv;
+    float tmpo;
     float offsetCompensation = 0.0f;
     float tanWsInv = 0.0f;
     float wsComp = 0.0f;
+    float resOffset = 0.0f;
     switch(type) {
         case 1:
             ws = powf(10, ws * ws * 3.0f) - 1.0f + 0.001f; //Arctangent
@@ -146,6 +148,13 @@ void waveShapeSmps(int n,
             ws = powf(2.0f, -ws * ws * 8.0f); //Limiter
             par = par/4;
             if (par > ws - 0.01) par = ws - 0.01;
+
+            // precalc offset with distortion function applied
+            resOffset = polyblampres(offs, ws, par);
+            offsetCompensation = offs>=0 ?
+                ( offs >= ws ? ws-resOffset : offs-resOffset ) :
+                ( offs <= -ws ? -ws+resOffset : offs+resOffset ) ;
+
             for(i = 0; i < n; ++i) {
                 // add the offset: x = smps[i] + offs
                 smps[i] += offs;
@@ -155,12 +164,9 @@ void waveShapeSmps(int n,
                     smps[i] = ( smps[i] > ws ? ws-res : smps[i]-res );
                 else
                     smps[i] = ( smps[i] < -ws ? -ws+res : smps[i]+res );
+
                 // and subtract the polyblamp-limited offset again: smps[i] = y - f(offs)
-                res = polyblampres(offs, ws, par);
-                if (offs>=0)
-                    smps[i] -= ( offs >= ws ? ws-res : offs-res );
-                else
-                    smps[i] -= ( offs <= -ws ? -ws+res : offs+res );
+                smps[i] -= offsetCompensation;
                 // divide through the drive factor: prevents limited signals to get low
                 smps[i] /= ws;
 
@@ -187,6 +193,13 @@ void waveShapeSmps(int n,
         case 10:
             ws = (powf(2.0f, ws * 6.0f) - 1.0f) / powf(2.0f, 6.0f); //Inverse Limiter
             if (par > ws - 0.01) par = ws - 0.01;
+
+            // precalc offset with distortion function applied
+            resOffset = polyblampres(offs, ws, par);
+            offsetCompensation = offs>=0 ?
+                (offs > ws ? offs-ws+resOffset : resOffset) :
+                (offs < -ws ? offs+ws-resOffset : -resOffset);
+
             for(i = 0; i < n; ++i) {
                 smps[i] += offs;
                 float res = polyblampres(smps[i], ws, par);
@@ -194,7 +207,8 @@ void waveShapeSmps(int n,
                     smps[i] = ( smps[i] > ws ? smps[i]-ws+res : res );
                 else
                     smps[i] = ( smps[i] < -ws ? smps[i]+ws-res : -res );
-                smps[i] -= offs;
+
+                smps[i] -= offsetCompensation;
             }
             break;
         case 11:
@@ -241,6 +255,17 @@ void waveShapeSmps(int n,
                 tmpv = 0.5f;
             else
                 tmpv = 0.5f - 1.0f / (expf(ws) + 1.0f);
+
+            // precalc offset with distortion function applied
+            tmpo = offs * ws;
+            if(tmpo < -10.0f)
+                tmpo = -10.0f;
+            else
+            if(tmpo > 10.0f)
+                tmpo = 10.0f;
+            tmpo     = 0.5f - 1.0f / (expf(tmpo) + 1.0f);
+            offsetCompensation = tmpo / tmpv;
+
             for(i = 0; i < n; ++i) {
                 smps[i] += offs; //add offset
                 // calculate sigmoid function
@@ -251,17 +276,9 @@ void waveShapeSmps(int n,
                 if(tmp > 10.0f)
                     tmp = 10.0f;
                 tmp     = 0.5f - 1.0f / (expf(tmp) + 1.0f);
-                // calculate the same for offset value
-                float tmpo = offs * ws;
-                if(tmpo < -10.0f)
-                    tmpo = -10.0f;
-                else
-                if(tmpo > 10.0f)
-                    tmpo = 10.0f;
-                tmpo     = 0.5f - 1.0f / (expf(tmpo) + 1.0f);
 
                 smps[i] = tmp / tmpv;
-                smps[i] -= tmpo / tmpv; // subtract offset
+                smps[i] -= offsetCompensation;
             }
             break;
         case 15: // tanh soft limiter
