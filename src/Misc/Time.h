@@ -20,14 +20,26 @@ class AbsTime
     public:
         AbsTime(const SYNTH_T &synth)
             :frames(0),
-            s(synth){};
+            s(synth),
+            tempo(120),
+            bar(0),
+            beat(0),
+            tick(0.0f),
+            bpm(120.0f),
+            trigger(false) {};
         void operator++(){++frames;};
         void operator++(int){frames++;};
         int64_t time() const {return frames;};
         unsigned int tempo;
+        int bar;
+        int beat;
+        float tick;
+        float bpm;
+        bool trigger;
         float dt() const { return s.dt(); }
         float framesPerSec() const { return 1/s.dt();}
         int   samplesPerFrame() const {return s.buffersize;}
+        int   samplerate() const {return s.buffersize / s.dt();}
     private:
         int64_t frames;
         const SYNTH_T &s;
