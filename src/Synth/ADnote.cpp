@@ -1661,15 +1661,6 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyModulation(int nvoice,
         
         // variables to store the sampling position and underflow during AA filtering
         int    ovsmpposhi;
-        
-        int    ovsmpfreqhi = vce.oscfreqhi[k] / 2;
-        int    ovsmpfreqlo = (int)((vce.oscfreqlo[k] / 2) * (1<<24));
-
-        int    ovsmpposlo;
-        int    ovsmpposhi;
-        int    uflow;
-        assert(vce.oscfreqlo[k] < 1.0f);
-        float out = 0;
 
         for(int i = 0; i < synth.buffersize; ++i) {
             float fmpos;
@@ -1739,6 +1730,7 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyModulation(int nvoice,
             }
             else {
                 tw[i] = (smps[carposhi] * ((1<<24) - carposlo)
+                    + smps[carposhi + 1] * carposlo)/(1.0f*(1<<24));
             }
 
             poslo += freqlo;
