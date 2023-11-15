@@ -488,9 +488,9 @@ void ADnote::setupVoiceMod(int nvoice, bool first_run)
                 * fmvoldamp * 4.0f;
             break;
         default:
-            if(fmvoldamp > 1.0f)
-                fmvoldamp = 1.0f;
             FMVolume = fmvolume_ * fmvoldamp;
+            if(FMVolume > 1.0f)
+                FMVolume = 1.0f;
             break;
     }
 
@@ -1509,8 +1509,8 @@ inline void ADnote::ComputeVoiceOscillatorSync(int nvoice)
             const float threshold = 0.0f;
             if ((tw[i]>threshold && fmold <=threshold) ||
                     (tw[i]>=threshold && fmold <threshold) ) {
-                poslo = 0;
-                poshi = 0;
+                poslo -= int(vce.FMnewamplitude*float(poslo));
+                poshi -= int(vce.FMnewamplitude*float(poshi));
             }
             fmold = tw[i]; 
             
@@ -1706,7 +1706,6 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyModulation(int nvoice,
         vce.FMoldsmp[k] = fmold;
     }
 }
-
 
 /*
  * Computes the Noise
