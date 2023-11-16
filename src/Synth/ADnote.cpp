@@ -1393,9 +1393,12 @@ inline void ADnote::ComputeVoiceOscillatorMix(int nvoice)
 /*
  * Computes the Oscillator (Ring Modulation)
  */
-inline void ADnote::ComputeVoiceOscillatorRingModulation(int nvoice)
+inline void ADnote::ComputeVoiceOscillatorRingModulation(int nvoice, FMTYPE FMmode)
 {
-    ComputeVoiceOscillator_LinearInterpolation(nvoice);
+    if(FMmode == FMTYPE::SYNC2_MOD)
+        ComputeVoiceOscillatorSync(nvoice);
+    else
+        ComputeVoiceOscillator_LinearInterpolation(nvoice);
 
     Voice& vce = NoteVoicePar[nvoice];
     if(vce.FMnewamplitude > 1.0f)
@@ -1788,7 +1791,8 @@ int ADnote::noteout(float *outl, float *outr)
                         ComputeVoiceOscillatorMix(nvoice);
                         break;
                     case FMTYPE::RING_MOD:
-                        ComputeVoiceOscillatorRingModulation(nvoice);
+                        ComputeVoiceOscillatorRingModulation(nvoice,
+                                                                  NoteVoicePar[nvoice].FMEnabled);
                         break;
                     case FMTYPE::FREQ_MOD:
                     case FMTYPE::PHASE_MOD:
@@ -1798,6 +1802,10 @@ int ADnote::noteout(float *outl, float *outr)
                         break;
                     case FMTYPE::SYNC_MOD:
                         ComputeVoiceOscillatorSync(nvoice);
+                        break;
+                    case FMTYPE::SYNC2_MOD:
+                        ComputeVoiceOscillatorRingModulation(nvoice,
+                                                                  NoteVoicePar[nvoice].FMEnabled);
                         break;
                     default:
                         if(NoteVoicePar[nvoice].AAEnabled) 
