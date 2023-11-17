@@ -1455,7 +1455,11 @@ inline void ADnote::ComputeVoiceOscillatorRingModulation(int nvoice, FMTYPE FMmo
                                             i,
                                             synth.buffersize);
                 int FMVoice = NoteVoicePar[nvoice].FMVoice;
-                tw[i] *= (1.0f - amp) + amp * NoteVoicePar[FMVoice].VoiceOut[i];
+                
+                if(FMmode == FMTYPE::RING_MOD)
+                    tw[i] *= (1.0f - amp) + amp * NoteVoicePar[FMVoice].VoiceOut[i];
+                else if(FMmode == FMTYPE::AM_MOD)
+                    tw[i] *= 0.5f + 0.5f * NoteVoicePar[FMVoice].VoiceOut[i] ;
             }
         }
     else
@@ -1835,6 +1839,7 @@ int ADnote::noteout(float *outl, float *outr)
                         ComputeVoiceOscillatorMix(nvoice);
                         break;
                     case FMTYPE::RING_MOD:
+                    case FMTYPE::AM_MOD:
                         ComputeVoiceOscillatorRingModulation(nvoice,
                                                                   NoteVoicePar[nvoice].FMEnabled);
                         break;
