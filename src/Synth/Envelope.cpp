@@ -146,15 +146,15 @@ void Envelope::watch(float time, float value)
 
 inline float bezier3(float a, float bRel, float cRel, float d, float t)
 {
-    float t2 = t*t;
-    float t3 = t2*t;
+    const float t2 = t*t;
+    const float t3 = t2*t;
 
-    float mt = 1.0f-t;
-    float mt2 = mt*mt;
-    float mt3 = mt2*mt;
+    const float mt = 1.0f-t;
+    const float mt2 = mt*mt;
+    const float mt3 = mt2*mt;
 
-    float b = (3.0f*a+d)/4.0f + 4.0f*bRel;
-    float c = (a+3.0f*d)/4.0f + 4.0f*cRel;
+    const float b = (3.0f*a+d)*0.25f + 4.0f*bRel;
+    const float c = (a+3.0f*d)*0.25f + 4.0f*cRel;
 
     return mt3*a + 3.0f*mt2*t*b + 3.0f*mt*t2*c + t3*d;
 }
@@ -258,8 +258,8 @@ float Envelope::envout_dB()
         return envout(true);
 
     if((currentpoint == 1) && (!keyreleased || !forcedrelease)) { //first point is always lineary interpolated <- seems to have odd effects
-        float v1 = EnvelopeParams::env_dB2rap(envval[0]);
-        float v2 = EnvelopeParams::env_dB2rap(envval[1]);
+        const float v1 = EnvelopeParams::env_dB2rap(envval[0]);
+        const float v2 = EnvelopeParams::env_dB2rap(envval[1]);
         out = v1 + (v2 - v1) * t;
 
         t += inct;
