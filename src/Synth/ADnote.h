@@ -259,6 +259,10 @@ class ADnote:public SynthNote
 
             Envelope *FMFreqEnvelope;
             Envelope *FMAmpEnvelope;
+            
+            
+            /* if Oscillator Sync is enabled */
+            bool syncEnabled;
 
             /********************************************************/
             /*    INTERNAL VALUES OF THE NOTE AND OF THE VOICES     */

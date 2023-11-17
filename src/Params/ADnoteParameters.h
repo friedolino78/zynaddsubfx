@@ -27,7 +27,7 @@ namespace zyn {
 #define WSKERNELSIZE 161
 
 enum class FMTYPE {
-    NONE, MIX, RING_MOD, AM_MOD, PHASE_MOD, FREQ_MOD, PW_MOD, SYNC_MOD, SYNC2_MOD
+    NONE, MIX, RING_MOD, AM_MOD, PHASE_MOD, FREQ_MOD, PW_MOD
 };
 
 /*****************************************************************/
@@ -273,7 +273,7 @@ struct ADnoteVoiceParam {
 
     /* Modulator Parameters (0=off,1=Mix,2=RM,3=PM,4=FM.. */
     FMTYPE PFMEnabled;
-
+    
     /* Voice that I use as modulator instead of FMSmp.
        It is -1 if I use FMSmp(default).
        It maynot be equal or bigger than current voice */
@@ -310,6 +310,12 @@ struct ADnoteVoiceParam {
     /* Frequency Envelope of the Modulator */
     unsigned char   PFMAmpEnvelopeEnabled;
     EnvelopeParams *FMAmpEnvelope;
+    
+	/* Voice is being synced by modulator
+   0 = off (default)
+   all other values = on
+   It maynot be equal or bigger than current voice */
+    bool PsyncEnabled;
 
     unsigned char *GlobalPDetuneType;
 
