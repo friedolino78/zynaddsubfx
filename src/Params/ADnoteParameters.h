@@ -27,7 +27,7 @@ namespace zyn {
 #define WSKERNELSIZE 161
 
 enum class FMTYPE {
-    NONE, MIX, RING_MOD, PHASE_MOD, FREQ_MOD, PW_MOD, SYNC_MOD, SYNC2_MOD
+    NONE, MIX, RING_MOD, AM_MOD, PHASE_MOD, FREQ_MOD, PW_MOD, SYNC_MOD, SYNC2_MOD
 };
 
 /*****************************************************************/
