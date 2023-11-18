@@ -862,7 +862,7 @@ void ADnoteVoiceParam::add2XML(XMLwrapper& xml, bool fmoscilused)
         }
         xml.endbranch();
     }
-
+    xml.addparbool("sync_enabled", PsyncEnabled);
     if((PFMEnabled != FMTYPE::NONE) || (fmoscilused != 0)
        || (!xml.minimal)) {
         xml.beginbranch("FM_PARAMETERS");
@@ -893,8 +893,6 @@ void ADnoteVoiceParam::add2XML(XMLwrapper& xml, bool fmoscilused)
             FMFreqEnvelope->add2XML(xml);
             xml.endbranch();
         }
-        
-        xml.addparbool("sync_enabled", PsyncEnabled);
 
         xml.beginbranch("OSCIL");
         FmGn->add2XML(xml);
@@ -1368,7 +1366,9 @@ void ADnoteVoiceParam::getfromXML(XMLwrapper& xml, unsigned nvoice)
         }
         xml.exitbranch();
     }
-
+    
+    PsyncEnabled     = (bool)xml.getparbool("sync_enabled", (int)PsyncEnabled);
+    
     if(xml.enterbranch("FM_PARAMETERS")) {
         const bool upgrade_3_0_3 = (xml.fileversion() < version_type(3,0,3)) ||
             (xml.getparreal("volume", -1) < 0);
@@ -1417,7 +1417,6 @@ void ADnoteVoiceParam::getfromXML(XMLwrapper& xml, unsigned nvoice)
         }
         xml.exitbranch();
     }
-    PsyncEnabled     = (bool)xml.getpar127("sync_enabled", (int)PsyncEnabled);
 }
 
 }
