@@ -1718,7 +1718,7 @@ inline void ADnote::ComputeVoiceOscillatorFrequencyModulation(int nvoice,
 
             if(NoteVoicePar[nvoice].AAEnabled) { 
                 // carrier frequency
-                const int carfreqhi = tw[i]+freqhi;
+                const int carfreqhi = (FMmode == FMTYPE::FREQ_MOD) ? tw[i]+freqhi : freqhi;
                 // resampling factor
                 const int rsmpfactor = (abs(carfreqhi)<1) ? 1 : abs(carfreqhi);
                 // offset of the oscillator sample to be multplied with first kernel position
