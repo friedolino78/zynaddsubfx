@@ -726,7 +726,7 @@ ADnoteGlobalParam::~ADnoteGlobalParam()
     delete FilterEnvelope;
     delete FilterLfo;
     delete Reson;
-    delete wskernel;
+    delete [] wskernel;
 }
 
 ADnoteParameters::~ADnoteParameters()
