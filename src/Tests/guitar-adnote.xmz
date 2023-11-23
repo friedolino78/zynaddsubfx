@@ -1198,6 +1198,7 @@ version-revision="7" ZynAddSubFX-author="Nasca Octavian Paul">
 </FILTER_LFO>
 <par_bool name="filter_seq_enabled" value="no" />
 </FILTER_PARAMETERS>
+<par_bool name="sync_enabled" value="no" />
 <FM_PARAMETERS>
 <par name="input_voice" value="-1" />
 <par_real name="volume" value="36.2205" exact_value="0x4210E1C3" />
@@ -1374,6 +1375,7 @@ version-revision="7" ZynAddSubFX-author="Nasca Octavian Paul">
 </FREQUENCY_LFO>
 <par_bool name="freq_seq_enabled" value="no" />
 </FREQUENCY_PARAMETERS>
+<par_bool name="sync_enabled" value="no" />
 </VOICE>
 <VOICE id="2">
 <par_bool name="enabled" value="yes" />
@@ -1468,6 +1470,7 @@ version-revision="7" ZynAddSubFX-author="Nasca Octavian Paul">
 </FREQUENCY_LFO>
 <par_bool name="freq_seq_enabled" value="no" />
 </FREQUENCY_PARAMETERS>
+<par_bool name="sync_enabled" value="no" />
 </VOICE>
 <VOICE id="3">
 <par_bool name="enabled" value="yes" />
@@ -1570,6 +1573,7 @@ version-revision="7" ZynAddSubFX-author="Nasca Octavian Paul">
 <par_bool name="freq_lfo_enabled" value="no" />
 <par_bool name="freq_seq_enabled" value="no" />
 </FREQUENCY_PARAMETERS>
+<par_bool name="sync_enabled" value="no" />
 </VOICE>
 <VOICE id="4">
 <par_bool name="enabled" value="no" />
