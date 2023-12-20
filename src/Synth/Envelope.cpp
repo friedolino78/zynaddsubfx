@@ -74,7 +74,7 @@ Envelope::Envelope(EnvelopeParams &pars, float basefreq, float bufferdt,
                 break;
             default:
                 envval[i] = pars.Penvval[i] / 127.0f;
-                envcpy[i] = 5.0f * pars.envcpy[i];
+                envcpy[i] = 0.25f * pars.envcpy[i];
                 break;
         }
     }
