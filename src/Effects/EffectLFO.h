@@ -25,7 +25,7 @@ class EffectLFO
     public:
         EffectLFO(float srate_f, float bufsize_f, const AbsTime *time = nullptr);
         ~EffectLFO();
-        void effectlfoout(float *outl, float *outr);
+        void effectlfoout(float *outl, float *outr, unsigned char phaseOffset = 0);
         void updateparams(void);
         unsigned char Pfreq;
         unsigned char Prandomness;
