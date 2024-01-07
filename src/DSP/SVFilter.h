@@ -68,6 +68,8 @@ class SVFilter:public Filter
         float gain; // the gain of the filter (if are shelf/peak) filters
 
     Value_Smoothing_Filter freq_smoothing;
+    
+    float softclip(float x);
 };
 
 }

@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include "../Misc/WaveShapeSmps.h"
 #include "../Misc/Util.h"
 #include "SVFilter.h"
 
@@ -192,13 +193,27 @@ float *SVFilter::getfilteroutfortype(SVFilter::fstage &x) {
 // xl = pf*pfxh*z(-1)/(1-z(-1))^2
 
 
+float SVFilter::softclip(float x)
+{
+    float out;
+    const float ws = 1.0f;
+    float res = polyblampres(x, ws, 0.2f);
+    // now apply the polyblamped limiter: y = f(x)
+    if (x>=0)
+        out = ( x> ws ? ws-res : x-res );
+    else
+        out = ( x < -ws ? -ws+res : x+res );
+    // divide through the drive factor: prevents limited signals to get low
+    return out /= ws; 
+}
+
 
 void SVFilter::singlefilterout(float *smp, SVFilter::fstage &x, SVFilter::parameters &par, int buffersize )
 {
     float *out = getfilteroutfortype(x);
     for(int i = 0; i < buffersize; ++i) {
         x.low   = x.low + par.f * x.band;
-        x.high  = par.q_sqrt * smp[i] - x.low - par.q * x.band;
+        x.high  = softclip(par.q_sqrt * gain*smp[i] - x.low - par.q * x.band);
         x.band  = par.f * x.high + x.band;
         x.notch = x.high + x.low;
         smp[i]  = *out;
