@@ -31,7 +31,8 @@ SallenKeyFilter::~SallenKeyFilter() {
 
 void SallenKeyFilter::setfreq(float freq_) {
     // limit frequency - with oversampling
-    freq = 0.4877f*limit(freq_, 0.0006f,(float)sr*0.22f);
+    freq = 0.5f*limit(freq_, 0.0006f,(float)sr*0.22f);
+    freq *= -0.000021f * freq + 1.006147f; // tuning to analog
 }
 
 void SallenKeyFilter::updateFilters(float freq) {
