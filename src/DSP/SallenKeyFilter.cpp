@@ -17,7 +17,7 @@ SallenKeyFilter::SallenKeyFilter(unsigned char Ftype, float Ffreq, float Fq, uns
     m_LPF1.m_fSampleRate = srate;
     m_LPF2.m_fSampleRate = srate;
     m_HPF1.m_fSampleRate = srate;
-    m_dSaturation = 1.0f;
+    m_dSaturation = 1.2f;
     input_old = 0.0f;
     
     freq_smoothing.sample_rate(samplerate_f/smoothing_size);
@@ -31,7 +31,7 @@ SallenKeyFilter::~SallenKeyFilter() {
 
 void SallenKeyFilter::setfreq(float freq_) {
     // limit frequency - with oversampling
-    freq = 0.5f*limit(freq_, 0.0006f,(float)sr*0.22f);
+    freq = 0.5f*limit(freq_, 0.0006f,(float)sr*0.33f);
     freq *= -0.000021f * freq + 1.006147f; // tuning to analog
 }
 
@@ -72,7 +72,7 @@ void SallenKeyFilter::setfreq_and_q(float frequency, float q)
 }
 
 void SallenKeyFilter::setgain(float gain_) {
-    gain = dB2rap(gain_);
+    gain = dB2rap(gain_+5.0f);
 }
 
 void SallenKeyFilter::settype(unsigned char ftype_) {
