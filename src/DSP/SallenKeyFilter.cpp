@@ -61,7 +61,7 @@ void SallenKeyFilter::updateFilters(float freq) {
 }
 
 void SallenKeyFilter::setq(float q) {
-    m_dK = cbrtf(q/1000.0f)*2.0f + 0.3f;
+    m_dK = cbrtf(q/1000.0f)*1.0f + 0.8f;
 }
 
 void SallenKeyFilter::setfreq_and_q(float frequency, float q)
@@ -116,8 +116,9 @@ void SallenKeyFilter::singlefilterout(float *smp, unsigned int bufsize)
     }
 }
 
-inline float SallenKeyFilter::tanhX(const float x) const
+inline float SallenKeyFilter::tanhX(const float input) const
 {
+    const float x = input + 0.02f;
     // Pade approximation of tanh(x) bound to [-1 .. +1]
     // https://mathr.co.uk/blog/2017-09-06_approximating_hyperbolic_tangent.html
     const float x2 = x*x;
