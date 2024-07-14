@@ -12,6 +12,7 @@
 */
 
 #pragma once
+#include "../Misc/Time.h"
 #include "Filter.h"
 #include "Value_Smoothing_Filter.h"
 
@@ -19,11 +20,8 @@
 
 namespace zyn {
 
-#define SYNCMODES   AUTO,\
-                    AUTOFLIP,\
-                    MIDI,\
-                    HOST,\
-                    HOSTFLIP,\
+#define SYNCMODES   CONTINUOUS,\
+                    FLIP,\
                     NOTEON,\
                     NOTEONOFF
 

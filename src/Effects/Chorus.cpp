@@ -99,7 +99,7 @@ Chorus::~Chorus()
 float Chorus::getdelay(float xlfo)
 {
     float result =
-        (Pflangemode) ? 0 : (delay + xlfo * depth) * samplerate_f;
+        (Pflangemode==1) ? 0 : (delay + xlfo * depth) * samplerate_f;
 
     //check if delay is too big (caused by bad setdelay() and setdepth()
     if((result + 0.5f) >= maxdelay) {

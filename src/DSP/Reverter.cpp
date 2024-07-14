@@ -24,7 +24,7 @@ namespace zyn{
 
 Reverter::Reverter(Allocator *alloc, float delay_,
     unsigned int srate, int bufsize, float tRef_, AbsTime *time_)
-    :syncMode(AUTO),
+    :syncMode(CONTINUOUS),
     input(nullptr),
     gain(1.0f),
     delay(delay_),
@@ -105,7 +105,7 @@ inline void Reverter::flipState() {
 
     } else if (state==PLAYING) {
         state = RECORDING;
-        printf("state: ->IDLE\n");
+        printf("state: ->RECORDING\n");
     }
 }
 
@@ -146,25 +146,40 @@ void Reverter::filterout(float *smp)
         absSampleAccumulator += fabsf(smp[i]);
         phase_offset = phase_offset_old + (float(i) * phase_offset_fade);
 
+        switch(time->source)
+        {
+            case INTERNAL:
+                switch(syncMode)
+                {
+                    case FLIP:
+                        if (reverse_index >= delay && state!=IDLE)
+                            flipState();
+                        [[fallthrough]];
+                    case CONTINUOUS:
+                        if (reverse_index >= delay && state!=IDLE)
+                            switchBuffers();
+                        break;
+                }
+                break;
+            
+            case HOST:
+                switch(syncMode)
+                {
+                case FLIP:
+                    if (doSync && reverse_index >= syncPos)
+                        flipState();
+                    [[fallthrough]];
+                case CONTINUOUS:
+                    if (doSync && reverse_index >= syncPos)
+                        switchBuffers();
+                    break;
+                }
+                break;
+            }
+
+            
         switch(syncMode)
         {
-            case AUTOFLIP:
-                if (reverse_index >= delay && state!=IDLE)
-                    flipState();
-                [[fallthrough]];
-            case AUTO:
-                if (reverse_index >= delay && state!=IDLE)
-                    switchBuffers();
-                break;
-            case HOSTFLIP:
-                if (doSync && reverse_index >= syncPos)
-                    flipState();
-                [[fallthrough]];
-            case HOST:
-            case MIDI:
-                if (doSync && reverse_index >= syncPos)
-                    switchBuffers();
-                break;
             case NOTEON:
                 if (reverse_index >= delay && state!=IDLE) {
                     printf("i: %d\n", i);

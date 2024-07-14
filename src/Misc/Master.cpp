@@ -512,10 +512,10 @@ static const Ports master_ports = {
         } else
             d.reply(d.loc, "i", m->time.tempo);
         rEnd},
-    {"sync::i", rProp(parameter) rDefault(0) rShort("Sync") rDoc("Syncronisation Source"), rLinear(0, 4), 0,
+    {"sync::i", rProp(parameter) rDefault(0) rShort("Sync") rDoc("Syncronisation Source") rOptions(SYNCSOURCES), 0,
         rBegin;
         if(!strcmp("i",rtosc_argument_string(msg))) {
-            m->time.source = rtosc_argument(msg, 0).i;
+            m->time.source = (SyncSource)rtosc_argument(msg, 0).i;
             d.broadcast(d.loc, "i", m->time.source);
         } else
             d.reply(d.loc, "i", m->time.source);

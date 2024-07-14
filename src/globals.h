@@ -260,10 +260,12 @@ enum MidiControllers {
     C_dataentryhi = 0x06, C_dataentrylo = 0x26, C_nrpnhi = 99, C_nrpnlo = 98
 };
 
+#define SYNCSOURCES INTERNAL,\
+                    HOST,\
+                    MIDI\
+
 enum SyncSource {
-    INTERNAL=0,
-    HOST,
-    MIDI,
+    SYNCSOURCES,
     NUM_SYNC_SOURCES
 };
 
