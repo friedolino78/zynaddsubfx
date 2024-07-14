@@ -27,6 +27,7 @@ class AbsTime
             bpm(120.0f),
             playing(false),
             trigger(false),
+            source(INTERNAL),
             frames(0),
             s(synth) {};
         void operator++(){++frames;};
@@ -39,6 +40,7 @@ class AbsTime
         float bpm;
         bool playing;
         bool trigger;
+        SyncSource source;
         float dt() const { return s.dt(); }
         float framesPerSec() const { return 1/s.dt();}
         int   samplesPerFrame() const {return s.buffersize;}
