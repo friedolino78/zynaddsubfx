@@ -86,6 +86,30 @@ inline float hanningWindow(float x) {
     return 0.5f * (1.0f - cos(1.0f * M_PI * x));
 }
 
+inline void Reverter::nextState() {
+    if (state==RECORDING) {
+        state = PLAYING;
+        printf("state: ->PLAYING\n");
+
+    } else if (state==PLAYING) {
+        state = IDLE;
+        printf("state: ->IDLE\n");
+    }
+}
+
+inline void Reverter::flipState() {
+    if (state==RECORDING) {
+        recorded_samples = reverse_index;
+        state = PLAYING;
+        printf("state: ->PLAYING\n");
+
+    } else if (state==PLAYING) {
+        state = RECORDING;
+        printf("state: ->IDLE\n");
+    }
+}
+
+
 inline void Reverter::switchBuffers() {
     // reset reverse index
     reverse_index = 0;
@@ -124,10 +148,18 @@ void Reverter::filterout(float *smp)
 
         switch(syncMode)
         {
+            case AUTOFLIP:
+                if (reverse_index >= delay && state!=IDLE)
+                    flipState();
+                [[fallthrough]];
             case AUTO:
                 if (reverse_index >= delay && state!=IDLE)
                     switchBuffers();
                 break;
+            case HOSTFLIP:
+                if (doSync && reverse_index >= syncPos)
+                    flipState();
+                [[fallthrough]];
             case HOST:
             case MIDI:
                 if (doSync && reverse_index >= syncPos)
@@ -138,14 +170,7 @@ void Reverter::filterout(float *smp)
                     printf("i: %d\n", i);
                     printf("mav: %f\n", mav);
                     printf("reverse_index: %f\n", reverse_index);
-                    if (state==RECORDING) {
-                        state = PLAYING;
-                        printf("syncMode: NOTEON state: ->PLAYING\n");
-
-                    } else if (state==PLAYING) {
-                        state = IDLE;
-                        printf("syncMode: NOTEON state: ->IDLE\n");
-                    }
+                    nextState();
                     switchBuffers();;
                 }
                 break;
@@ -156,15 +181,7 @@ void Reverter::filterout(float *smp)
                     printf("i: %d\n", i);
                     printf("mean absolute value: %f\n", mav);
                     printf("reverse_index: %f\n", reverse_index);
-                    if (state==RECORDING) {
-                        recorded_samples = reverse_index;
-                        state = PLAYING;
-                        printf("syncMode: NOTEONOFF state: ->PLAYING\n");
-
-                    } else if (state==PLAYING) {
-                        state = IDLE;
-                        printf("syncMode: NOTEONOFF state: ->IDLE\n");
-                    }
+                    nextState();
                     switchBuffers();
                 }
                 break;

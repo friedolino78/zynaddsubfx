@@ -20,8 +20,10 @@
 namespace zyn {
 
 #define SYNCMODES   AUTO,\
+                    AUTOFLIP,\
                     MIDI,\
                     HOST,\
+                    HOSTFLIP,\
                     NOTEON,\
                     NOTEONOFF
 
@@ -64,6 +66,8 @@ class Reverter
 
         void update_phase(float phase);
         void switchBuffers();
+        void nextState();
+        void flipState();
 
         float* input;
         float gain;
