@@ -1243,7 +1243,7 @@ inline void ADnote::ComputeVoiceOscillator_LinearInterpolation(int nvoice)
         float out = 0;
         for(int i = 0; i < synth.buffersize; ++i) {
 
-            if(NoteVoicePar[nvoice].AAEnabled && abs(tw[i]+freqhi) > 2.0f) {
+            if(NoteVoicePar[nvoice].AAEnabled && freqhi > 2.0f) {
                 // resampling factor
                 const int rsmpfactor = (freqhi>40) ? 40 : (freqhi<1) ? 1 : freqhi;
                 // offset of the oscillator sample to be multplied with first kernel position
