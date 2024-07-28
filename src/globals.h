@@ -76,8 +76,8 @@ class  ModFilter;
 typedef float fftwf_real;
 typedef std::complex<fftwf_real> fft_t;
 
-#define BIT_CONSTPOWMIX 0
-#define MSK_CONSTPOWMIX 0b00000001
+#define MSK_CONSTPOWPAN     0b00000001
+#define MSK_CONSTPOWDRYWET  0b00000010
 
 /**
  * The number of harmonics of additive synth
@@ -348,8 +348,8 @@ struct SYNTH_T {
     
     /**
      * compatibility mask
-     * Bit0 (MSK_CONSTPOWMIX) 1: constant power mixing active 0: compatibility mode
-     * Bit1 (BIT_???) reserverd
+     * Bit0 (MSK_CONSTPOWDRYWET) 1: constant power dry/wet mixing active 0: compatibility mode
+     * Bit1 (MSK_CONSTPOWMIX) 1: constant power panning active 0: compatibility mode
      * Bit2 (BIT_???) reserverd
      */
     int compatibility;
