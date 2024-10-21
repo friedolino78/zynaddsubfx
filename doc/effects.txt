@@ -640,3 +640,9 @@ to the global Tempo (bpm)
 ** *Phase* adjust the time when the reversed segments start relative to a
 global time reference. It's usefull only when used together with another 
 timed element like LFO.
+** *Sync* choose how the recording and reverse playing phase is synchronized
+* *Auto* the effect switches automatically between recording and reverse playing and vice versa after a segment (length)
+* *MIDI* like auto but speed is taken from midi timecode
+* *Host* like auto but speed is taken from plugin host (when running as plugin mode)
+* *NoteOn* recording starts at noteOn. Reverse playing starts after a segment (length)
+* *NoteOnOff* recording starts at noteon. Reverse playing starts at noteoff
