@@ -580,10 +580,10 @@ Description
 ^^^^^^^^^^^
 
 ** *Length* Length of the segments being played backwards.
-** *Numerator&Denominator* Alternatively the length can be set relative 
+** *Numerator&Denominator* Alternatively the length can be set relative
 to the global Tempo (bpm)
 ** *Phase* adjust the time when the reversed segments start relative to a
-global time reference. It's usefull only when used together with another 
+global time reference. It's usefull only when used together with another
 timed element like LFO.
 Sympathetic
 ~~~~~~~~
@@ -600,7 +600,7 @@ TIP: map the sustain pedal to the Q parameter
 Function
 ^^^^^^^^
 
-It is made off a bank of combfilters that are by default tuned like the 
+It is made off a bank of combfilters that are by default tuned like the
 strings of a piano.
 
 Description
@@ -608,7 +608,7 @@ Description
 
 ** *Drive* how much input signal id fed to the strings
 ** *Level* Output Volume
-** *Str* Number of strings to use. 12 is a full Octave. On small systems 
+** *Str* Number of strings to use. 12 is a full Octave. On small systems
 be carefull with cpu load
 ** *Q* How strong is the Reflection
 ** *Uni* Unisono - how many strings should have the 'same' frequency it' used with the
@@ -635,10 +635,10 @@ Description
 ^^^^^^^^^^^
 
 ** *Length* Length of the segments being played backwards.
-** *Numerator&Denominator* Alternatively the length can be set relative 
+** *Numerator&Denominator* Alternatively the length can be set relative
 to the global Tempo (bpm)
 ** *Phase* adjust the time when the reversed segments start relative to a
-global time reference. It's usefull only when used together with another 
+global time reference. It's usefull only when used together with another
 timed element like LFO.
 ** *Sync* choose how the recording and reverse playing phase is synchronized
 * *Auto* the effect switches automatically between recording and reverse playing and vice versa after a segment (length)
