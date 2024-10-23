@@ -568,7 +568,7 @@ Introduction
 ^^^^^^^^^^^^
 
 The reversed effect plays the audio signal backwards. To prevent a time paradoxon
-it the input signal is chopped in segments that are reversed one by one.
+the input signal is chopped in segments that are reversed one by one.
 One classic usage is the reversing of a decaying sound for example from reverb.
 
 Function
