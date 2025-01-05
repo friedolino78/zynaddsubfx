@@ -33,6 +33,8 @@ class EffectLFO
          * but get the phased shifted output of the last one.
          * */
         void effectlfoout(float *outl, float *outr, float phaseOffset = 0.0f);
+        float effectlfooutl(float phaseOffset);
+        float effectlfooutr(float phaseOffset);
         void updateparams(void);
         unsigned char Pfreq;
         unsigned char Prandomness;

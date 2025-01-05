@@ -17,10 +17,6 @@
 #include "EffectLFO.h"
 #include "../Misc/Stereo.h"
 
-
-
-
-
 namespace zyn {
 
 #define MAX_CHORUS_DELAY 250.0f //ms
@@ -40,6 +36,8 @@ namespace zyn {
 enum {
     CHORUS_MODES
 };
+
+typedef float (*EffectLfoFunc)(float phaseOffset);
 
 /**Chorus and Flange effects*/
 class Chorus final:public Effect
@@ -113,16 +111,18 @@ class Chorus final:public Effect
 
         //Internal Values
         float depth, delay, fb;
-        float dlHist, dlNew, lfol;
-        float drHist, drNew, lfor;
-        float dlHist2, dlNew2;
-        float drHist2, drNew2;
-        float dlHist3, dlNew3;
-        float drHist3, drNew3;
+        float dlHist[3], dlNew[3], lfol;
+        float drHist[3], drNew[3], lfor;
         int   maxdelay;
         Stereo<float *> delaySample;
         int dlk, drk;
         float getdelay(float xlfo);
+        void prepareChannel(int& dk, float* dHist, float* dNew, 
+                      EffectLfoFunc lfoFunc, float& fbComp);
+        void processChannel(const float input, float& output, 
+                      float* delaySample, const int i, 
+                      int& dk, float* dHist, float* dNew, 
+                      float fbComp);
 
         float output;
 };
