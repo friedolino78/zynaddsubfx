@@ -16,6 +16,37 @@
 
 namespace zyn {
 
+
+class MonoEffectLFO
+{
+    public:
+        MonoEffectLFO(float srate_f, float bufsize_f);
+        ~MonoEffectLFO();
+
+        /**
+        * Calculate the output of the effect LFO for the given channel.
+        *
+        * @param phaseOffset phase offset for the LFO
+        * @return LFO output value in the range [0, 1]
+        */
+        float effectlfoout(float phaseOffset = 0.0f, float stereoOffset = 0.0f);
+
+        void updateparams(unsigned char Pfreq, unsigned char Prandomness, unsigned char PLFOtype);
+        unsigned char PLFOtype;
+        float phase;
+
+    private:
+        float getlfoshape(float x);
+
+        float inc;
+        float ampl1, ampl2;
+        float lfornd;
+
+        float samplerate_f;
+        float buffersize_f;
+        unsigned char lfoTypeInternal;
+};
+
 /**LFO for some of the Effect objects
  * \todo see if this should inherit LFO*/
 class EffectLFO
@@ -28,8 +59,8 @@ class EffectLFO
          * calculate the output of the effect LFO for two signals (stereo)
          * @param outl pointer to write the result for left side to
          * @param outr pointer to write the result for right side to
-         * @param phaseOffset phaseoffset 
-         * if phaseOffset is not 0 we don't want to update the phase 
+         * @param phaseOffset phaseoffset
+         * if phaseOffset is not 0 we don't want to update the phase
          * but get the phased shifted output of the last one.
          * */
         void effectlfoout(float *outl, float *outr, float phaseOffset = 0.0f);
@@ -41,17 +72,12 @@ class EffectLFO
         unsigned char PLFOtype;
         unsigned char Pstereo; // 64 is centered
     private:
-        float getlfoshape(float x);
-
-        float xl, xr;
-        float incx;
-        float ampl1, ampl2, ampr1, ampr2; //necessary for "randomness"
-        float lfornd;
+        MonoEffectLFO left;
+        MonoEffectLFO right;
         char  lfotype;
+        float stereoOffset;
 
-        // current setup
-        float samplerate_f;
-        float buffersize_f;
+
 };
 
 }

@@ -190,7 +190,7 @@ void Chorus::prepareChannel( int& dk, float* dHist, float* dNew,
         lfoVal = lfoFunc(PHASE_240);
         dlNew[2] = getdelay(lfoVal);
         // reduce amplitude to match single phase modes
-        // 0.85 * fbComp / 3 
+        // 0.85 * fbComp / 3
         fbComp /= 3.53f;
     }
 }
