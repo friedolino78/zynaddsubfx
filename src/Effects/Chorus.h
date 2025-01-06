@@ -37,8 +37,6 @@ enum {
     CHORUS_MODES
 };
 
-typedef float (*EffectLfoFunc)(float phaseOffset);
-
 /**Chorus and Flange effects*/
 class Chorus final:public Effect
 {
@@ -100,7 +98,14 @@ class Chorus final:public Effect
         unsigned char Pfb;         //feedback
         unsigned char Pflangemode; //mode as described above in CHORUS_MODES
         unsigned char Poutsub;     //if I wish to subtract the output instead of the adding it
-        EffectLFO     lfo;         //lfo-ul chorus
+        unsigned char Pfreq;       // LFO frequency
+        unsigned char Prandomness; // LFO randmoness
+        unsigned char PLFOtype;    // LFO Type 0: sine  1: tiangle
+        unsigned char Pstereo;     // phase difference between stereo channels.
+        
+        
+        MonoEffectLFO leftLFO;         //lfo-ul chorus
+        MonoEffectLFO rightLFO;         //lfo-ul chorus
 
 
         //Parameter Controls
@@ -118,7 +123,7 @@ class Chorus final:public Effect
         int dlk, drk;
         float getdelay(float xlfo);
         void prepareChannel(int& dk, float* dHist, float* dNew, 
-                      EffectLfoFunc lfoFunc, float& fbComp);
+                      MonoEffectLFO lfo, float& fbComp);
         void processChannel(const float input, float& output, 
                       float* delaySample, const int i, 
                       int& dk, float* dHist, float* dNew, 

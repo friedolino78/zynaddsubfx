@@ -80,7 +80,8 @@ rtosc::Ports Chorus::ports = {
 
 Chorus::Chorus(EffectParams pars)
     :Effect(pars),
-      lfo(pars.srate, pars.bufsize),
+      leftLFO(pars.srate, pars.bufsize),
+      rightLFO(pars.srate, pars.bufsize),
       maxdelay((int)(MAX_CHORUS_DELAY / 1000.0f * samplerate_f)),
       delaySample(memory.valloc<float>(maxdelay), memory.valloc<float>(maxdelay))
 {
@@ -88,7 +89,8 @@ Chorus::Chorus(EffectParams pars)
     drk = 0;
     setpreset(Ppreset);
     changepar(1, 64);
-    lfo.effectlfoout(&lfol, &lfor);
+    lfol = leftLFO.effectlfoout();
+    lfor = rightLFO.effectlfoout();
     dlNew[0] = getdelay(lfol);
     drNew[0] = getdelay(lfor);
     cleanup();
@@ -158,10 +160,10 @@ void Chorus::processChannel(const float input, float& output,
 }
 
 void Chorus::prepareChannel( int& dk, float* dHist, float* dNew, 
-                      EffectLfoFunc lfoFunc, float& fbComp) {
+                      MonoEffectLFO lfo, float& fbComp) {
 
     // calculate new lfo values
-    float lfoVal = lfoFunc(0.0f);
+    float lfoVal = lfo.effectlfoout();
     
     // store old delay value for linear interpolation
     dHist[0] = dNew[0];
@@ -173,7 +175,7 @@ void Chorus::prepareChannel( int& dk, float* dHist, float* dNew,
     {
         // same for second member for ensemble mode with 180° phase offset
         dlHist[1] = dlNew[1];
-        lfoVal = lfoFunc(PHASE_180);
+        lfoVal = lfo.effectlfoout(PHASE_180);
         dlNew[1] = getdelay(lfoVal);
         fbComp /= 2.0f;
     }
@@ -182,12 +184,12 @@ void Chorus::prepareChannel( int& dk, float* dHist, float* dNew,
     {
         // same for second member for ensemble mode with 120° phase offset
         dlHist[1] = dlNew[1];
-        lfoVal = lfoFunc(PHASE_120);
+        lfoVal = lfo.effectlfoout(PHASE_120);
         dlNew[1] = getdelay(lfoVal);
 
         // same for third member for ensemble mode with 240° phase offset
         dlHist[2] = dlNew[2];
-        lfoVal = lfoFunc(PHASE_240);
+        lfoVal = lfo.effectlfoout(PHASE_240);
         dlNew[2] = getdelay(lfoVal);
         // reduce amplitude to match single phase modes
         // 0.85 * fbComp / 3
@@ -200,10 +202,8 @@ void Chorus::out(const Stereo<float *> &input)
 {
   
     float fbComp = 0.0f;
-    auto effectlfooutl = std::bind(&EffectLFO::effectlfooutl);
-    auto effectlfooutr = std::bind(&EffectLFO::effectlfooutr);
-    prepareChannel(dlk, dlHist, dlNew, effectlfooutl, fbComp);
-    prepareChannel(drk, drHist, drNew, effectlfooutr, fbComp);
+    prepareChannel(dlk, dlHist, dlNew, leftLFO, fbComp);
+    prepareChannel(drk, drHist, drNew, rightLFO, fbComp);
 
     for(int i = 0; i < buffersize; ++i) {
         
@@ -320,20 +320,22 @@ void Chorus::changepar(int npar, unsigned char value)
             setpanning(value);
             break;
         case 2:
-            lfo.Pfreq = value;
-            lfo.updateparams();
+            Pfreq = value;
+            leftLFO.updateparams(Pfreq, Prandomness, PLFOtype);
+            rightLFO.updateparams(Pfreq, Prandomness, PLFOtype);
             break;
         case 3:
-            lfo.Prandomness = value;
-            lfo.updateparams();
+            Prandomness = value;
+            leftLFO.updateparams(Pfreq, Prandomness, PLFOtype);
+            rightLFO.updateparams(Pfreq, Prandomness, PLFOtype);
             break;
         case 4:
-            lfo.PLFOtype = value;
-            lfo.updateparams();
+            PLFOtype = value;
+            leftLFO.updateparams(Pfreq, Prandomness, PLFOtype);
+            rightLFO.updateparams(Pfreq, Prandomness, PLFOtype);
             break;
         case 5:
-            lfo.Pstereo = value;
-            lfo.updateparams();
+            Pstereo = value;
             break;
         case 6:
             setdepth(value);
@@ -348,7 +350,8 @@ void Chorus::changepar(int npar, unsigned char value)
             setlrcross(value);
             break;
         case 10:
-            lfo.updateparams();
+            leftLFO.updateparams(Pfreq, Prandomness, PLFOtype);
+            rightLFO.updateparams(Pfreq, Prandomness, PLFOtype);
             Pflangemode = (value > 3) ? 3 : value;
             break;
         case 11:
@@ -362,10 +365,10 @@ unsigned char Chorus::getpar(int npar) const
     switch(npar) {
         case 0:  return Pvolume;
         case 1:  return Ppanning;
-        case 2:  return lfo.Pfreq;
-        case 3:  return lfo.Prandomness;
-        case 4:  return lfo.PLFOtype;
-        case 5:  return lfo.Pstereo;
+        case 2:  return Pfreq;
+        case 3:  return Prandomness;
+        case 4:  return PLFOtype;
+        case 5:  return Pstereo;
         case 6:  return Pdepth;
         case 7:  return Pdelay;
         case 8:  return Pfb;
