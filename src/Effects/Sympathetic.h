@@ -66,10 +66,19 @@ class Sympathetic final:public Effect
         unsigned char PcontactStrength;
         unsigned char PcontactPos;
 
+        unsigned char Pinharmonicity = 0;
+        unsigned char Pbeta = 64;
+        unsigned char Pgamma = 64;
+
         unsigned char spread, spread_old;
 
         float freqs[NUM_SYMPATHETIC_STRINGS];
         float baseFreq;
+        float inharmonicity = 0.0f;
+        float beta = 1.0f;
+        float gamma = 2.0f;
+
+        unsigned int srate;
 
         void setvolume(unsigned char _Pvolume);
         void setlpf(unsigned char _Plpf);
