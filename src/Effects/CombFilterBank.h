@@ -14,7 +14,6 @@ class CombFilterBank
     CombFilterBank(Allocator *alloc, unsigned int samplerate_, int buffersize_, float initgain);
     ~CombFilterBank();
     void filterout(float *smp);
-    void updateOffsets(float maxDrop);
 
     /** Individual delay times for each comb filter in seconds */
     float delays[NUM_SYMPATHETIC_STRINGS]={};
@@ -30,6 +29,21 @@ class CombFilterBank
 
     void setStrings(unsigned int nr, const float basefreq);
     void setStrings(unsigned int nrOfStringsNew, unsigned int mem_size_new);
+
+    /** Contact proximity to the string.
+     *  0.0 = finger touching the string (maximum sensitivity, lower threshold)
+     *  1.0 = no contact (minimum sensitivity, higher threshold)
+     *  Controls how easily contact events are triggered. */
+    float contactOffset = 1.0f;
+
+    /** Contact material hardness / energy transfer.
+     *  0.0 = soft material (no energy reflected back into string)
+     *  1.0 = hard material (maximum energy reflected back)
+     *  Controls how much of the detected contact excitation is fed back. */
+    float contactStrength = 0.0f;
+
+    /** Contact position along the string as fraction of delay (0..0.5) */
+    float contactPosition = 0.25f;
 
     /** Maximum drop amount for pitch modulation effects in octaves */
     float maxDrop = 2.0f;
@@ -74,6 +88,10 @@ class CombFilterBank
 
     /** Sample counter for timing-based delay modulation */
     float sampleCounter = 0.0f;
+
+    float hp_state[NUM_SYMPATHETIC_STRINGS] = {};
+    float env[NUM_SYMPATHETIC_STRINGS] = {};
+    float contactResponse[NUM_SYMPATHETIC_STRINGS] = {};
 };
 
 }
