@@ -15,32 +15,83 @@ class CombFilterBank
     ~CombFilterBank();
     void filterout(float *smp);
 
+    /** Individual delay times for each comb filter in seconds */
     float delays[NUM_SYMPATHETIC_STRINGS]={};
+
+    /** Gain applied to the input signal before processing */
     float inputgain;
+
+    /** Overall output gain applied after filter bank processing */
     float outgain;
+
+    /** Feedback gain coefficient for the comb filter recursion */
     float gainbwd;
 
     void setStrings(unsigned int nr, const float basefreq);
+    void setStrings(unsigned int nrOfStringsNew, unsigned int mem_size_new);
 
+    /** Contact proximity to the string.
+     *  0.0 = finger touching the string (maximum sensitivity, lower threshold)
+     *  1.0 = no contact (minimum sensitivity, higher threshold)
+     *  Controls how easily contact events are triggered. */
+    float contactOffset = 1.0f;
+
+    /** Contact material hardness / energy transfer.
+     *  0.0 = soft material (no energy reflected back into string)
+     *  1.0 = hard material (maximum energy reflected back)
+     *  Controls how much of the detected contact excitation is fed back. */
+    float contactStrength = 0.0f;
+
+    /** Contact position along the string as fraction of delay (0..0.5) */
+    float contactPosition = 0.25f;
+
+    /** Maximum drop amount for pitch modulation effects in octaves */
+    float maxDrop = 2.0f;
+
+    /** Rate at which pitch drops occur for modulation effects */
+    float dropRate = 0.0f;
+
+    /** Time constant for fade-in/fade-out effects in % default: 5/127 */
+    float fadingTime = 0.03937007874f;
+
+    /** Global pitch offset applied to all strings in semitones */
+    float pitchOffset = 0.0f;
 
     private:
     static float tanhX(const float x);
     float sampleLerp(const float *smp, const float pos) const;
 
-    float* string_smps[NUM_SYMPATHETIC_STRINGS] = {};
-    float baseFreq;
+    /** Array of delay line buffers for each comb filter*/
+    float* comb_smps[NUM_SYMPATHETIC_STRINGS] = {};
+
+    /** Base frequency reference for tuning calculations in Hz */
+    float baseFreq=110.0f;
+
+    /** Current number of active sympathetic strings */
     unsigned int nrOfStrings=0;
+
+    /** Write position pointer for circular buffer operation */
     unsigned int pos_writer = 0;
 
-    /* for smoothing gain jump when using binary valued sustain pedal */
+    /** Smoothing filter to prevent gain discontinuities when sustain pedal changes */
     Value_Smoothing_Filter gain_smoothing;
 
+    /** Smoothing filter for gradual pitch offset changes */
+    Value_Smoothing_Filter offset_smoothing;
+
+    /** Memory allocator reference for dynamic buffer allocation */
     Allocator &memory;
+
     unsigned int mem_size=0;
     int samplerate=0;
     unsigned int buffersize=0;
 
+    /** Sample counter for timing-based delay modulation */
+    float sampleCounter = 0.0f;
 
+    float hp_state[NUM_SYMPATHETIC_STRINGS] = {};
+    float env[NUM_SYMPATHETIC_STRINGS] = {};
+    float contactResponse[NUM_SYMPATHETIC_STRINGS] = {};
 };
 
 }
