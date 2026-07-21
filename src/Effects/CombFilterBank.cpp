@@ -182,7 +182,7 @@ void CombFilterBank::filterout(float *smp)
         const float input_smp = smp[i] * inputgain;
         const float current_gain = gainbuf[i / 16];
 
-        const bool isPitchDrop = maxDrop > maxDrop_min;
+        const bool isPitchDrop = maxDrop >= maxDrop_min;
         FloatTuple phases, gains;
         if (isPitchDrop) {
             phases = generatePhasedSawtooth(sampleCounter, dropRate, maxDrop);
